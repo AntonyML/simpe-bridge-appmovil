@@ -11,7 +11,7 @@ class ProcessSmsUseCase(private val context: Context) {
         timestamp: Long,
         serviceCenter: String?,
         protocolId: Int,
-        status: Int,
+        smsStatus: Int,
         isStatusReport: Boolean,
         isReplyPathPresent: Boolean,
         multipartRef: Int,
@@ -21,7 +21,8 @@ class ProcessSmsUseCase(private val context: Context) {
         simSlot: Int,
         networkOperator: String?,
         pdu: String,
-        format: String
+        format: String,
+        messageStatus: MessageStatus = MessageStatus.PENDING
     ): SmsMessage {
         
         val contentHash = SecurityUtils.generateSHA256("$sender|$body|$timestamp")
@@ -35,7 +36,8 @@ class ProcessSmsUseCase(private val context: Context) {
             envelope = SmsEnvelope(
                 contentHash = contentHash,
                 deviceHash = deviceHash,
-                signature = signature
+                signature = signature,
+                status = messageStatus
             ),
             payload = SmsPayload(
                 sender = sender,
@@ -44,7 +46,7 @@ class ProcessSmsUseCase(private val context: Context) {
                 metadata = SmsMetadata(
                     serviceCenter = serviceCenter,
                     protocolId = protocolId,
-                    status = status,
+                    status = smsStatus,
                     isStatusReport = isStatusReport,
                     isReplyPathPresent = isReplyPathPresent
                 ),

@@ -15,10 +15,12 @@ data class SmsEnvelope(
     val contentHash: String,
     val deviceHash: String,
     val signature: String,
-    val status: MessageStatus = MessageStatus.PENDING,
+    val status: MessageStatus,
     val retryCount: Int = 0,
     val lastAttemptAt: Long? = null
-)
+) {
+    fun copyWithStatus(newStatus: MessageStatus): SmsEnvelope = this.copy(status = newStatus)
+}
 
 data class SmsPayload(
     val sender: String,

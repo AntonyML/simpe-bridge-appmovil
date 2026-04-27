@@ -20,6 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.simpe.bridge.appmovil.domain.usecases.MessageStatus
 import com.simpe.bridge.appmovil.domain.usecases.ProcessSmsUseCase
 import com.simpe.bridge.appmovil.notifications.NotificationHelper
 import com.simpe.bridge.appmovil.ui.components.AppTopBar
@@ -82,7 +83,7 @@ class MainActivity : ComponentActivity() {
                                     timestamp = System.currentTimeMillis(),
                                     serviceCenter = null,
                                     protocolId = 0,
-                                    status = 0,
+                                    smsStatus = 0,
                                     isStatusReport = false,
                                     isReplyPathPresent = false,
                                     multipartRef = 0,
@@ -92,7 +93,8 @@ class MainActivity : ComponentActivity() {
                                     simSlot = 0,
                                     networkOperator = "TEST-OP",
                                     pdu = "000102030405060708090A0B0C0D0E0F",
-                                    format = "3gpp"
+                                    format = "3gpp",
+                                    messageStatus = MessageStatus.SENT
                                 )
                                 viewModel.saveMessage(testMessage)
                                 Toast.makeText(this, "SMS de prueba generado", Toast.LENGTH_SHORT).show()
