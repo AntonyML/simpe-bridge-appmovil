@@ -8,6 +8,7 @@ import com.simpe.bridge.appmovil.data.local.AppDatabase
 import com.simpe.bridge.appmovil.data.repository.MessageRepositoryImpl
 import com.simpe.bridge.appmovil.domain.usecases.SaveMessageUseCase
 import com.simpe.bridge.appmovil.domain.usecases.SmsMessage
+import com.simpe.bridge.appmovil.notifications.NotificationHelper
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -44,6 +45,9 @@ class SmsReceiver : BroadcastReceiver() {
                         timestamp = timestamp,
                     )
                 )
+                
+                // Show notification for incoming message
+                NotificationHelper.showSmsNotification(context, sender, content)
             } finally {
                 pendingResult.finish()
             }
