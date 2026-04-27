@@ -1,0 +1,32 @@
+=========================================
+INSTRUCCIONES DE USO - SCRIPTS DE CONTROL
+=========================================
+
+Estos scripts permiten trabajar en el proyecto sin necesidad de abrir Android Studio.
+Solo necesitas tener instalado el SDK de Android (adb) y Java.
+
+REQUISITOS:
+1. Celular conectado por cable USB.
+2. Depuración USB activada en el celular.
+
+SCRIPTS DISPONIBLES:
+
+1. build-deploy.ps1
+   - Qué hace: Compila la app, la instala en tu celular y la abre automáticamente.
+   - Uso: Click derecho > Ejecutar con PowerShell.
+
+2. view-logs.ps1
+   - Qué hace: Muestra en tiempo real lo que pasa dentro de la app (logs, errores, SMS capturados).
+   - Uso: Mantener abierto mientras pruebas la app.
+
+3. clean.ps1
+   - Qué hace: Borra archivos temporales de compilación si algo falla.
+   - Uso: Usar si la app da errores extraños al compilar.
+
+4. extract-apk.ps1
+   - Qué hace: Compila la app y te deja un archivo .apk listo para pasar por WhatsApp o Telegram.
+
+NOTAS:
+- Si PowerShell te da error de "scripts deshabilitados", abre una terminal como administrador y ejecuta:
+  Set-ExecutionPolicy RemoteSigned
+- Los scripts autogeneran la versión de la app basada en la hora actual, por lo que cada instalación es única.

@@ -1,3 +1,6 @@
+import java.text.SimpleDateFormat
+import java.util.Date
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -5,8 +8,18 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
-val ciVersionCode = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull() ?: 1
-val ciVersionName = (project.findProperty("VERSION_NAME") as String?) ?: "1.0.0"
+// AUTO-VERSIONING LOGIC
+fun generateVersionCode(): Int {
+    return SimpleDateFormat("yyMMddHHmm").format(Date()).toLong().let { (it / 100).toInt() }
+}
+
+fun generateVersionName(): String {
+    val date = SimpleDateFormat("yyyy.MM.dd.HHmm").format(Date())
+    return "1.0.$date"
+}
+
+val autoVersionCode = generateVersionCode()
+val autoVersionName = generateVersionName()
 
 android {
     namespace = "com.simpe.bridge.appmovil"
@@ -16,8 +29,8 @@ android {
         applicationId = "com.simpe.bridge.appmovil"
         minSdk = 24
         targetSdk = 35
-        versionCode = ciVersionCode
-        versionName = ciVersionName
+        versionCode = autoVersionCode
+        versionName = autoVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -32,6 +45,10 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+        }
+        debug {
+            // Ensure debug builds also get unique versions for local testing
+            versionNameSuffix = "-debug"
         }
     }
 
