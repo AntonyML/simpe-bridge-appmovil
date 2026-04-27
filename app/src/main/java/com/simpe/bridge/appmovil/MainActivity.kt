@@ -20,7 +20,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.simpe.bridge.appmovil.domain.usecases.SmsMessage
+import com.simpe.bridge.appmovil.domain.usecases.ProcessSmsUseCase
 import com.simpe.bridge.appmovil.notifications.NotificationHelper
 import com.simpe.bridge.appmovil.ui.components.AppTopBar
 import com.simpe.bridge.appmovil.ui.components.BottomNavBar
@@ -75,13 +75,26 @@ class MainActivity : ComponentActivity() {
                         AppTopBar(
                             messageCount = messages.size,
                             onTestSmsClick = {
-                                viewModel.saveMessage(
-                                    SmsMessage(
-                                        sender = "TEST-SENDER",
-                                        content = "Este es un mensaje de prueba para SIMPE Bridge.",
-                                        timestamp = System.currentTimeMillis()
-                                    )
+                                val processSms = ProcessSmsUseCase(applicationContext)
+                                val testMessage = processSms(
+                                    sender = "TEST-SENDER",
+                                    body = "Este es un mensaje de prueba para SIMPE Bridge.",
+                                    timestamp = System.currentTimeMillis(),
+                                    serviceCenter = null,
+                                    protocolId = 0,
+                                    status = 0,
+                                    isStatusReport = false,
+                                    isReplyPathPresent = false,
+                                    multipartRef = 0,
+                                    multipartSeq = 1,
+                                    multipartTotal = 1,
+                                    subscriptionId = 1,
+                                    simSlot = 0,
+                                    networkOperator = "TEST-OP",
+                                    pdu = "000102030405060708090A0B0C0D0E0F",
+                                    format = "3gpp"
                                 )
+                                viewModel.saveMessage(testMessage)
                                 Toast.makeText(this, "SMS de prueba generado", Toast.LENGTH_SHORT).show()
                             }
                         )

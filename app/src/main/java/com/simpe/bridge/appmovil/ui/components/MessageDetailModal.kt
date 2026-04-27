@@ -1,6 +1,5 @@
 package com.simpe.bridge.appmovil.ui.components
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,11 +11,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.gson.GsonBuilder
+import com.simpe.bridge.appmovil.data.remote.toDto
 import com.simpe.bridge.appmovil.domain.usecases.SmsMessage
 import java.text.SimpleDateFormat
 import java.util.*
@@ -31,7 +32,9 @@ fun MessageDetailModal(
 ) {
     if (message == null) return
 
-    val dateFormatter = SimpleDateFormat("EEEE, dd MMMM yyyy HH:mm:ss", Locale.getDefault())
+    val dateFormatter = SimpleDateFormat("EEEE, dd/MM/yyyy HH:mm:ss", Locale.getDefault())
+    val gson = GsonBuilder().setPrettyPrinting().create()
+    val jsonString = gson.toJson(message.toDto())
     
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -49,57 +52,37 @@ fun MessageDetailModal(
         ) {
             // Header
             Column {
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "Detalle del Mensaje",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    StatusBadge(status = message.envelope.status)
+                }
                 Text(
-                    text = "Detalle del Mensaje",
-                    style = MaterialTheme.typography.headlineSmall,
-                    fontWeight = FontWeight.Bold
-                )
-                Text(
-                    text = dateFormatter.format(Date(message.timestamp)),
+                    text = dateFormatter.format(Date(message.envelope.createdAt)),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            // Sender Card
+            // IDs and Traceability
             Surface(
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
-                shape = RoundedCornerShape(16.dp)
+                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                shape = RoundedCornerShape(12.dp)
             ) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text(
-                            text = "REMITENTE",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        Text(
-                            text = message.sender,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                Column(modifier = Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                    TraceItem(label = "Message ID", value = message.envelope.messageId)
+                    TraceItem(label = "Correlation ID", value = message.envelope.correlationId)
+                    TraceItem(label = "Content Hash", value = message.envelope.contentHash)
                 }
             }
 
-            // Content
-            Column {
-                Text(
-                    text = "CONTENIDO",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(bottom = 8.dp)
-                )
-                Text(
-                    text = message.content,
-                    style = MaterialTheme.typography.bodyLarge,
-                    lineHeight = 24.sp
-                )
+            // Sender and Content
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                DetailSection(label = "REMITENTE", value = message.payload.sender)
+                DetailSection(label = "CONTENIDO", value = message.payload.body)
             }
 
             // Actions
@@ -108,37 +91,72 @@ fun MessageDetailModal(
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
                 Button(
-                    onClick = { onCopyText(message.content) },
+                    onClick = { onCopyText(message.payload.body) },
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 12.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(Icons.Rounded.ContentCopy, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Copiar Texto")
+                    Text("Texto")
                 }
                 
                 OutlinedButton(
-                    onClick = { 
-                        val json = """
-                            {
-                              "id": ${message.id},
-                              "sender": "${message.sender}",
-                              "body": "${message.content.replace("\"", "\\\"")}",
-                              "timestamp": ${message.timestamp}
-                            }
-                        """.trimIndent()
-                        onCopyJson(json) 
-                    },
+                    onClick = { onCopyJson(jsonString) },
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(vertical = 12.dp),
                     shape = RoundedCornerShape(12.dp)
                 ) {
                     Icon(Icons.Rounded.DataObject, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(Modifier.width(8.dp))
-                    Text("Copiar JSON")
+                    Text("JSON")
                 }
             }
+            
+            // JSON Preview (Optional but good for debug)
+            Text(
+                text = "VISTA PREVIA JSON (DEBUG)",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Surface(
+                color = Color(0xFF1E1E1E),
+                shape = RoundedCornerShape(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = jsonString,
+                    modifier = Modifier.padding(12.dp),
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        fontFamily = FontFamily.Monospace,
+                        color = Color(0xFFD4D4D4),
+                        fontSize = 10.sp
+                    )
+                )
+            }
         }
+    }
+}
+
+@Composable
+fun TraceItem(label: String, value: String) {
+    Column {
+        Text(text = label, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.primary)
+        Text(text = value, style = MaterialTheme.typography.bodySmall, fontFamily = FontFamily.Monospace, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+    }
+}
+
+@Composable
+fun DetailSection(label: String, value: String) {
+    Column {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.padding(bottom = 4.dp)
+        )
+        Text(
+            text = value,
+            style = MaterialTheme.typography.bodyLarge,
+            lineHeight = 22.sp
+        )
     }
 }
