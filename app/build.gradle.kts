@@ -5,6 +5,9 @@ plugins {
     id("com.google.devtools.ksp")
 }
 
+val ciVersionCode = (project.findProperty("VERSION_CODE") as String?)?.toIntOrNull() ?: 1
+val ciVersionName = (project.findProperty("VERSION_NAME") as String?) ?: "1.0.0"
+
 android {
     namespace = "com.simpe.bridge.appmovil"
     compileSdk = 35
@@ -13,8 +16,8 @@ android {
         applicationId = "com.simpe.bridge.appmovil"
         minSdk = 24
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = ciVersionCode
+        versionName = ciVersionName
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
