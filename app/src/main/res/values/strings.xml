@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Simpe Bridge</string>
+    <string name="sms_permissions_required">Se requieren permisos de SMS para capturar mensajes entrantes.</string>
+    <string name="grant_permissions">Conceder permisos</string>
+    <string name="sender">Remitente</string>
+</resources>
