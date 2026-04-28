@@ -13,15 +13,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
-/**
- * SmsReceiver handles incoming SMS messages and manages their lifecycle state machine.
- * 
- * FLOW:
- * 1. Capture SMS -> Initial State: PENDING (Memory only)
- * 2. Validate SMS -> If invalid -> Final State: FAILED (Persisted)
- * 3. Process SMS -> If error -> Final State: FAILED (Persisted)
- * 4. Persist SMS -> Final State: SENT (Persisted)
- */
+
 class SmsReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
@@ -53,6 +45,7 @@ class SmsReceiver : BroadcastReceiver() {
                 val saveMessageUseCase = SaveMessageUseCase(repository)
                 val processSms = ProcessSmsUseCase(context)
                 val validateSms = ValidateSmsUseCase()
+                val detectSinpe = DetectSinpePatternUseCase(context)
 
                 // State determination
                 var finalStatus = MessageStatus.SENT
@@ -61,6 +54,16 @@ class SmsReceiver : BroadcastReceiver() {
                 if (!validateSms(sender, content)) {
                     finalStatus = MessageStatus.FAILED
                 }
+
+                // 2.5. Detect SINPE patterns (NEW)
+                val detectionResult = detectSinpe(sender, content)
+                
+                // Log para debugging
+                android.util.Log.d("SmsReceiver", "SINPE Detection: classification=${detectionResult.classification}, " +
+                    "confidence=${detectionResult.confidence}, details=${detectionResult.details}")
+
+                // Only process and notify SINPE messages (or all for now, with classification)
+                val isSinpeMessage = detectionResult.classification == SmsClassification.SINPE
 
                 try {
                     // 3. Process SMS (Generates IDs, hashes, signatures)
@@ -82,7 +85,8 @@ class SmsReceiver : BroadcastReceiver() {
                         networkOperator = null,
                         pdu = firstSms.pdu?.joinToString("") { "%02x".format(it) }.orEmpty(),
                         format = intent.getStringExtra("format") ?: "unknown",
-                        messageStatus = finalStatus
+                        messageStatus = finalStatus,
+                        detectionResult = detectionResult
                     )
 
                     // 4. Final Persistence
@@ -112,7 +116,8 @@ class SmsReceiver : BroadcastReceiver() {
                         networkOperator = null,
                         pdu = firstSms.pdu?.joinToString("") { "%02x".format(it) }.orEmpty(),
                         format = intent.getStringExtra("format") ?: "unknown",
-                        messageStatus = MessageStatus.FAILED
+                        messageStatus = MessageStatus.FAILED,
+                        detectionResult = detectionResult
                     )
                     saveMessageUseCase(failedMessage)
                     processingException.printStackTrace()

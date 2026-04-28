@@ -17,7 +17,11 @@ data class SmsEnvelope(
     val signature: String,
     val status: MessageStatus,
     val retryCount: Int = 0,
-    val lastAttemptAt: Long? = null
+    val lastAttemptAt: Long? = null,
+    // Clasificación SINPE
+    val classification: SmsClassification = SmsClassification.UNKNOWN,
+    val detectionConfidence: Float = 0f,
+    val detectionDetails: String = ""
 ) {
     fun copyWithStatus(newStatus: MessageStatus): SmsEnvelope = this.copy(status = newStatus)
 }

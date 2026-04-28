@@ -4,10 +4,23 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
+    <!-- Mensaje principal -->
     <path
         android:fillColor="#FFFFFF"
-        android:pathData="M20,20h68a8,8 0 0 1 8,8v40a8,8 0 0 1 -8,8h-20l-12,12 -12,-12h-24a8,8 0 0 1 -8,-8v-40a8,8 0 0 1 8,-8z" />
+        android:pathData="M30,32h48c2.2,0 4,1.8 4,4v28c0,2.2 -1.8,4 -4,4h-24l-12,10v-10h-12c-2.2,0 -4,-1.8 -4,-4v-28c0,-2.2 1.8,-4 4,-4z" />
+    <!-- Línea 1 -->
     <path
         android:fillColor="#6750A4"
-        android:pathData="M33,39h42v6h-42zM33,51h30v6h-30z" />
+        android:pathData="M36,46h36v4h-36z" />
+    <!-- Línea 2 -->
+    <path
+        android:fillColor="#6750A4"
+        android:pathData="M36,56h24v4h-24z" />
+    <!-- Punto de conexión (Bridge) -->
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M74,64m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <path
+        android:fillColor="#4CAF50"
+        android:pathData="M82,58l8,6l-8,6z" />
 </vector>

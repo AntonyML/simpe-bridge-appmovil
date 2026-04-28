@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
-    <background android:color="#FFFFFF"/>
-    <foreground android:drawable="@mipmap/ic_launcher_foreground"/>
+    <background android:color="#1E3A2F"/>
+    <foreground android:drawable="@drawable/ic_launcher_foreground"/>
 </adaptive-icon>

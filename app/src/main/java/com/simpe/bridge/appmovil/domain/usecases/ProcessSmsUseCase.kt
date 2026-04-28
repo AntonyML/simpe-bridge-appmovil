@@ -22,7 +22,8 @@ class ProcessSmsUseCase(private val context: Context) {
         networkOperator: String?,
         pdu: String,
         format: String,
-        messageStatus: MessageStatus = MessageStatus.PENDING
+        messageStatus: MessageStatus = MessageStatus.PENDING,
+        detectionResult: SinpeDetectionResult? = null
     ): SmsMessage {
         
         val contentHash = SecurityUtils.generateSHA256("$sender|$body|$timestamp")
@@ -32,12 +33,20 @@ class ProcessSmsUseCase(private val context: Context) {
         val secret = "SECRET_KEY_PLACEHOLDER"
         val signature = SecurityUtils.generateHMAC("$contentHash|$deviceHash", secret)
         
+        // Extract classification from detection result
+        val classification = detectionResult?.classification ?: SmsClassification.UNKNOWN
+        val confidence = detectionResult?.confidence ?: 0f
+        val details = detectionResult?.details ?: ""
+        
         return SmsMessage(
             envelope = SmsEnvelope(
                 contentHash = contentHash,
                 deviceHash = deviceHash,
                 signature = signature,
-                status = messageStatus
+                status = messageStatus,
+                classification = classification,
+                detectionConfidence = confidence,
+                detectionDetails = details
             ),
             payload = SmsPayload(
                 sender = sender,

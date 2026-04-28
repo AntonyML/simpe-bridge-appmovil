@@ -1,18 +1,23 @@
 package com.simpe.bridge.appmovil.ui.screens.settings
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
+import com.simpe.bridge.appmovil.domain.utils.SettingsManager
 
 @Composable
 fun SettingsScreen(
@@ -21,6 +26,12 @@ fun SettingsScreen(
     hasSmsPermissions: Boolean,
     onRequestPermissions: () -> Unit
 ) {
+    val context = LocalContext.current
+    val settingsManager = remember { SettingsManager(context) }
+    
+    var showSendersDialog by remember { mutableStateOf(false) }
+    var senders by remember { mutableStateOf(settingsManager.getSinpeSenders()) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -42,6 +53,14 @@ fun SettingsScreen(
                 icon = Icons.Rounded.Sms,
                 checked = isListenerEnabled,
                 onCheckedChange = onListenerToggle
+            )
+        }
+
+        // SINPE Senders Section
+        SettingsSection(title = "Remitentes SINPE") {
+            SettingsSendersItem(
+                senders = senders,
+                onClick = { showSendersDialog = true }
             )
         }
 
@@ -68,6 +87,181 @@ fun SettingsScreen(
                 value = "Solo Android",
                 icon = Icons.Rounded.CellTower
             )
+        }
+    }
+
+    // Dialog para gestionar remitentes
+    if (showSendersDialog) {
+        SendersDialog(
+            senders = senders,
+            onDismiss = { showSendersDialog = false },
+            onAddSender = { newSender ->
+                settingsManager.addSinpeSender(newSender)
+                senders = settingsManager.getSinpeSenders()
+            },
+            onRemoveSender = { sender ->
+                settingsManager.removeSinpeSender(sender)
+                senders = settingsManager.getSinpeSenders()
+            },
+            onReset = {
+                settingsManager.resetToDefaults()
+                senders = settingsManager.getSinpeSenders()
+            }
+        )
+    }
+}
+
+@Composable
+fun SettingsSendersItem(
+    senders: Set<String>,
+    onClick: () -> Unit
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Rounded.ContactPhone,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = "Remitentes esperados", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                text = "${senders.size} configurados",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        IconButton(onClick = onClick) {
+            Icon(Icons.Rounded.Edit, contentDescription = "Editar")
+        }
+    }
+}
+
+@Composable
+fun SendersDialog(
+    senders: Set<String>,
+    onDismiss: () -> Unit,
+    onAddSender: (String) -> Unit,
+    onRemoveSender: (String) -> Unit,
+    onReset: () -> Unit
+) {
+    var newSender by remember { mutableStateOf("") }
+    var showAddField by remember { mutableStateOf(false) }
+
+    Dialog(onDismissRequest = onDismiss) {
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Column(
+                modifier = Modifier.padding(20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Remitentes SINPE",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                Text(
+                    text = "Números o palabras clave que identifican mensajes SINPE.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                // Lista de remitentes
+                LazyColumn(
+                    modifier = Modifier.heightIn(max = 200.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    items(senders.toList().sorted()) { sender ->
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = sender,
+                                modifier = Modifier.weight(1f),
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            IconButton(
+                                onClick = { onRemoveSender(sender) },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    Icons.Rounded.Close,
+                                    contentDescription = "Eliminar",
+                                    tint = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        }
+                    }
+                }
+
+                // Campo para agregar
+                if (showAddField) {
+                    OutlinedTextField(
+                        value = newSender,
+                        onValueChange = { newSender = it },
+                        label = { Text("Nuevo remitente") },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(onClick = { showAddField = false }) {
+                            Text("Cancelar")
+                        }
+                        TextButton(
+                            onClick = {
+                                if (newSender.isNotBlank()) {
+                                    onAddSender(newSender)
+                                    newSender = ""
+                                    showAddField = false
+                                }
+                            }
+                        ) {
+                            Text("Agregar")
+                        }
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        OutlinedButton(
+                            onClick = { showAddField = true },
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Icon(Icons.Rounded.Add, contentDescription = null)
+                            Spacer(Modifier.width(4.dp))
+                            Text("Agregar")
+                        }
+                        OutlinedButton(onClick = onReset) {
+                            Text("Reset")
+                        }
+                    }
+                }
+
+                // Botones de acción
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cerrar")
+                    }
+                }
+            }
         }
     }
 }
