@@ -5,5 +5,5 @@ class SaveMessageUseCase(
 ) {
     suspend operator fun invoke(message: SmsMessage) {
         repository.saveMessage(message)
-    }
+    } 
 }

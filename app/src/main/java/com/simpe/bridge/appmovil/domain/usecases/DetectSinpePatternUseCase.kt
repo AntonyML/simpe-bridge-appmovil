@@ -61,7 +61,7 @@ class DetectSinpePatternUseCase(private val context: Context? = null) {
         if (senderCheck != null) {
             return senderCheck
         }
-
+ 
         // 2. Buscar patrones en el contenido
         val matchedPatterns = findMatchingPatterns(cleanBody)
 

@@ -6,7 +6,7 @@ enum class MessageStatus {
     PENDING, SENT, FAILED
 }
 
-data class SmsEnvelope(
+data class SmsEnvelope( 
     val messageId: String = UUID.randomUUID().toString(),
     val correlationId: String = UUID.randomUUID().toString(),
     val createdAt: Long = System.currentTimeMillis(),

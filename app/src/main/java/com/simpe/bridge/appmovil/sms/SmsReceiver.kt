@@ -62,8 +62,15 @@ class SmsReceiver : BroadcastReceiver() {
                 android.util.Log.d("SmsReceiver", "SINPE Detection: classification=${detectionResult.classification}, " +
                     "confidence=${detectionResult.confidence}, details=${detectionResult.details}")
 
-                // Only process and notify SINPE messages (or all for now, with classification)
+                // Only process and notify SINPE messages
                 val isSinpeMessage = detectionResult.classification == SmsClassification.SINPE
+
+                // Filter: Only process if it's a SINPE message
+                if (!isSinpeMessage) {
+                    android.util.Log.d("SmsReceiver", "Message filtered out (not SINPE): $sender - $content")
+                    pendingResult.finish()
+                    return@launch
+                }
 
                 try {
                     // 3. Process SMS (Generates IDs, hashes, signatures)
@@ -92,7 +99,7 @@ class SmsReceiver : BroadcastReceiver() {
                     // 4. Final Persistence
                     saveMessageUseCase(robustMessage)
                     
-                    // Trigger notification only on success
+                    // Trigger notification
                     if (finalStatus == MessageStatus.SENT) {
                         NotificationHelper.showSmsNotification(context, sender, content)
                     }

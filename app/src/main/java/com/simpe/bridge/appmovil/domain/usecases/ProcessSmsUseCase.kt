@@ -7,7 +7,7 @@ class ProcessSmsUseCase(private val context: Context) {
     
     operator fun invoke(
         sender: String,
-        body: String,
+        body: String, 
         timestamp: Long,
         serviceCenter: String?,
         protocolId: Int,

@@ -6,3 +6,4 @@ interface MessageRepository {
     fun getMessages(): Flow<List<SmsMessage>>
     suspend fun saveMessage(message: SmsMessage)
 }
+ 

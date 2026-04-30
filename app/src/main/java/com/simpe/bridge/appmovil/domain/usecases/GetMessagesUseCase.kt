@@ -6,4 +6,4 @@ class GetMessagesUseCase(
     private val repository: MessageRepository,
 ) {
     operator fun invoke(): Flow<List<SmsMessage>> = repository.getMessages()
-}
+} 
