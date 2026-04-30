@@ -20,6 +20,11 @@ data class SinpeDetectionResult(
 
 //Patrones más comunes
 enum class SinpePattern(val regex: Regex, val description: String) {
+    // Palabra clave simple
+    SINPE_KEYWORD(
+        Regex("(?i)\\bSINPE\\b", RegexOption.IGNORE_CASE),
+        "Palabra SINPE"
+    ),
     // Patrones de transferencia recibida
     TRANSFER_RECEIVED(
         Regex("(?i)has recibido|recibió|depósito|deposito|transferencia recibida", RegexOption.IGNORE_CASE),
@@ -123,10 +128,10 @@ class DetectSinpePatternUseCase(private val context: Context? = null) {
     private fun calculateConfidence(matchedPatterns: List<SinpePattern>): Float {
         if (matchedPatterns.isEmpty()) return 0f
         
-        // Pesos simples: transferencia + monto = alta confianza
         var confidence = 0f
         for (pattern in matchedPatterns) {
             confidence += when (pattern) {
+                SinpePattern.SINPE_KEYWORD -> 0.8f  // Palabra SINPE es un indicador fuerte
                 SinpePattern.TRANSFER_RECEIVED, SinpePattern.TRANSFER_SENT -> 0.4f
                 SinpePattern.AMOUNT -> 0.3f
                 SinpePattern.REFERENCE -> 0.2f

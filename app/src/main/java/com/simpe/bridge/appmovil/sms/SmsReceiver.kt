@@ -24,13 +24,15 @@ class SmsReceiver : BroadcastReceiver() {
         }
 
         val pendingResult = goAsync()
+        var broadcastFinished = false
 
         CoroutineScope(SupervisorJob() + Dispatchers.IO).launch {
             try {
                 // 1. Capture SMS data
                 val messages = Telephony.Sms.Intents.getMessagesFromIntent(intent)
                 if (messages.isEmpty()) {
-                    pendingResult.finish()
+                    android.util.Log.w("SmsReceiver", "FILTRO: SMS no contiene mensajes")
+                    broadcastFinished = true
                     return@launch
                 }
 
@@ -38,6 +40,8 @@ class SmsReceiver : BroadcastReceiver() {
                 val sender = firstSms.displayOriginatingAddress.orEmpty()
                 val content = messages.joinToString(separator = "") { it.messageBody.orEmpty() }
                 val timestamp = firstSms.timestampMillis
+
+                android.util.Log.d("SmsReceiver", " SMS RECIBIDO => Remitente: '$sender' | Contenido: '$content'")
 
                 // Shared repository and DAO
                 val dao = AppDatabase.getInstance(context.applicationContext).messageDao()
@@ -52,25 +56,35 @@ class SmsReceiver : BroadcastReceiver() {
 
                 // 2. Validate SMS
                 if (!validateSms(sender, content)) {
+                    android.util.Log.w("SmsReceiver", "FILTRO: Validacion basica fallo")
                     finalStatus = MessageStatus.FAILED
+                    broadcastFinished = true
+                    return@launch
+                } else {
+                    android.util.Log.d("SmsReceiver", "VALIDACION OK: SMS paso validacion basica")
                 }
 
-                // 2.5. Detect SINPE patterns (NEW)
+                // 2.5. Detect SINPE patterns
                 val detectionResult = detectSinpe(sender, content)
                 
-                // Log para debugging
-                android.util.Log.d("SmsReceiver", "SINPE Detection: classification=${detectionResult.classification}, " +
-                    "confidence=${detectionResult.confidence}, details=${detectionResult.details}")
+                android.util.Log.d("SmsReceiver", " DETECCIÓN SINPE:")
+                android.util.Log.d("SmsReceiver", "   • Clasificación: ${detectionResult.classification}")
+                android.util.Log.d("SmsReceiver", "   • Confianza: ${detectionResult.confidence}")
+                android.util.Log.d("SmsReceiver", "   • Detalles: ${detectionResult.details}")
+                android.util.Log.d("SmsReceiver", "   • Patrón coincidido: ${detectionResult.matchedPattern}")
 
                 // Only process and notify SINPE messages
                 val isSinpeMessage = detectionResult.classification == SmsClassification.SINPE
 
-                // Filter: Only process if it's a SINPE message
                 if (!isSinpeMessage) {
-                    android.util.Log.d("SmsReceiver", "Message filtered out (not SINPE): $sender - $content")
-                    pendingResult.finish()
+                    android.util.Log.w("SmsReceiver", "FILTRO BLOQUEADO: NO es SINPE - Clasificacion: ${detectionResult.classification}")
+                    android.util.Log.w("SmsReceiver", "   Remitente: $sender | Contenido: $content")
+                    android.util.Log.w("SmsReceiver", "   Razon: ${detectionResult.details}")
+                    broadcastFinished = true
                     return@launch
                 }
+
+                android.util.Log.d("SmsReceiver", " ACEPTADO: Mensaje clasificado como SINPE - Procesando...")
 
                 try {
                     // 3. Process SMS (Generates IDs, hashes, signatures)
@@ -98,43 +112,64 @@ class SmsReceiver : BroadcastReceiver() {
 
                     // 4. Final Persistence
                     saveMessageUseCase(robustMessage)
+                    android.util.Log.d("SmsReceiver", "OK GUARDADO: Mensaje SINPE persistido")
                     
                     // Trigger notification
                     if (finalStatus == MessageStatus.SENT) {
                         NotificationHelper.showSmsNotification(context, sender, content)
+                        android.util.Log.d("SmsReceiver", "NOTIFICACION: Enviada al usuario")
                     }
+                    broadcastFinished = true
 
                 } catch (processingException: Exception) {
+                    android.util.Log.e("SmsReceiver", "ERROR: Excepcion durante procesamiento", processingException)
                     // Fail-safe persistence for unexpected processing errors
-                    val failedMessage = processSms(
-                        sender = sender,
-                        body = content,
-                        timestamp = timestamp,
-                        serviceCenter = firstSms.serviceCenterAddress,
-                        protocolId = firstSms.protocolIdentifier,
-                        smsStatus = firstSms.status,
-                        isStatusReport = firstSms.isStatusReportMessage,
-                        isReplyPathPresent = firstSms.isReplyPathPresent,
-                        multipartRef = 0,
-                        multipartSeq = 1,
-                        multipartTotal = messages.size,
-                        subscriptionId = intent.getIntExtra("subscription", -1),
-                        simSlot = intent.getIntExtra("slot", -1),
-                        networkOperator = null,
-                        pdu = firstSms.pdu?.joinToString("") { "%02x".format(it) }.orEmpty(),
-                        format = intent.getStringExtra("format") ?: "unknown",
-                        messageStatus = MessageStatus.FAILED,
-                        detectionResult = detectionResult
-                    )
-                    saveMessageUseCase(failedMessage)
+                    try {
+                        val failedMessage = processSms(
+                            sender = sender,
+                            body = content,
+                            timestamp = timestamp,
+                            serviceCenter = firstSms.serviceCenterAddress,
+                            protocolId = firstSms.protocolIdentifier,
+                            smsStatus = firstSms.status,
+                            isStatusReport = firstSms.isStatusReportMessage,
+                            isReplyPathPresent = firstSms.isReplyPathPresent,
+                            multipartRef = 0,
+                            multipartSeq = 1,
+                            multipartTotal = messages.size,
+                            subscriptionId = intent.getIntExtra("subscription", -1),
+                            simSlot = intent.getIntExtra("slot", -1),
+                            networkOperator = null,
+                            pdu = firstSms.pdu?.joinToString("") { "%02x".format(it) }.orEmpty(),
+                            format = intent.getStringExtra("format") ?: "unknown",
+                            messageStatus = MessageStatus.FAILED,
+                            detectionResult = detectionResult
+                        )
+                        saveMessageUseCase(failedMessage)
+                        android.util.Log.w("SmsReceiver", "RECUPERACION: Mensaje guardado como FAILED")
+                    } catch (e: Exception) {
+                        android.util.Log.e("SmsReceiver", "ERROR: Recuperacion fallo", e)
+                    }
                     processingException.printStackTrace()
+                    broadcastFinished = true
                 }
 
             } catch (e: Exception) {
                 // Critical system failure
+                android.util.Log.e("SmsReceiver", "ERROR CRITICO: Fallo del sistema", e)
                 e.printStackTrace()
+                broadcastFinished = true
             } finally {
-                pendingResult.finish()
+                // Call finish() ONLY ONCE at the very end
+                try {
+                    if (!broadcastFinished) {
+                        android.util.Log.w("SmsReceiver", "WARNING: Finalizando sin procesar")
+                    }
+                    pendingResult.finish()
+                    android.util.Log.d("SmsReceiver", "OK: BroadcastReceiver finalizado correctamente")
+                } catch (e: Exception) {
+                    android.util.Log.e("SmsReceiver", "ERROR: Fallo al finalizar broadcast", e)
+                }
             }
         }
     }
