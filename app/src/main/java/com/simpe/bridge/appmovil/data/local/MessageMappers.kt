@@ -14,7 +14,10 @@ fun MessageEntity.toDomain(): SmsMessage = SmsMessage(
         signature = signature,
         status = status,
         retryCount = retryCount,
-        lastAttemptAt = lastAttemptAt
+        lastAttemptAt = lastAttemptAt,
+        classification = SmsClassification.valueOf(classification),
+        detectionConfidence = detectionConfidence,
+        detectionDetails = detectionDetails
     ),
     payload = SmsPayload(
         sender = sender,
@@ -71,5 +74,8 @@ fun SmsMessage.toEntity(): MessageEntity = MessageEntity(
     simSlot = payload.device.simSlot,
     networkOperator = payload.device.networkOperator,
     pdu = payload.debug.pdu,
-    format = payload.debug.format
+    format = payload.debug.format,
+    classification = envelope.classification.name,
+    detectionConfidence = envelope.detectionConfidence,
+    detectionDetails = envelope.detectionDetails
 )

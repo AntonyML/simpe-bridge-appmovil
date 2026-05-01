@@ -61,7 +61,10 @@ data class MessageRecord(
     @SerialName("sim_slot")              val simSlot: Int,
     @SerialName("network_operator")      val networkOperator: String?,
     @SerialName("pdu")                   val pdu: String,
-    @SerialName("format")                val format: String
+    @SerialName("format")                val format: String,
+    @SerialName("classification")        val classification: String,
+    @SerialName("detection_confidence")  val detectionConfidence: Float,
+    @SerialName("detection_details")     val detectionDetails: String
 )
 
 fun MessageEntity.toMessageRecord(deviceUUID: String) = MessageRecord(
@@ -92,5 +95,8 @@ fun MessageEntity.toMessageRecord(deviceUUID: String) = MessageRecord(
     simSlot             = simSlot,
     networkOperator     = networkOperator,
     pdu                 = pdu,
-    format              = format
+    format              = format,
+    classification      = classification,
+    detectionConfidence = detectionConfidence,
+    detectionDetails    = detectionDetails
 )

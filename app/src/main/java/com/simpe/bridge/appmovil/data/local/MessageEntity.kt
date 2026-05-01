@@ -47,5 +47,10 @@ data class MessageEntity(
     
     // Debug
     val pdu: String,
-    val format: String
+    val format: String,
+
+    // Classification
+    val classification: String,
+    val detectionConfidence: Float,
+    val detectionDetails: String
 )
