@@ -1,69 +1,55 @@
-# Fix Gradle Plugin Serialization Error and Improve Code Robustness
+# Sync SINPE Classification Data
 
-The Kotlin serialization plugin is used in the `app` module but is not declared in the root `build.gradle.kts` with a version. Additionally, I've identified minor improvements for several core files to ensure they align with the project's native-first, reactive goals.
+The app identifies SINPE messages, but the classification results (classification, confidence, and details) are not currently saved in the local database or synced to Supabase. This plan will add the necessary fields to the local database and remote synchronization.
 
 ## Proposed Changes
 
-### Build Configuration
+### Local Data Layer
 
-#### [build.gradle.kts](file:///C:/DEV/simpe-bridge-appmovil/build.gradle.kts)
+#### [MessageEntity.kt](file:///C:/DEV/simpe-bridge-appmovil/app/src/main/java/com/simpe/bridge/appmovil/data/local/MessageEntity.kt)
 
-- Add the `org.jetbrains.kotlin.plugin.serialization` plugin with version "2.0.21".
+- Add `classification`, `detectionConfidence`, and `detectionDetails` fields.
 
-```diff
- plugins {
-     id("com.android.application") version "8.13.2" apply false
-     id("org.jetbrains.kotlin.android") version "2.0.21" apply false
-     id("org.jetbrains.kotlin.plugin.compose") version "2.0.21" apply false
-+    id("org.jetbrains.kotlin.plugin.serialization") version "2.0.21" apply false
-     id("com.google.devtools.ksp") version "2.0.21-1.0.28" apply false
- }
+```kotlin
+    // New fields for classification
+    val classification: String,
+    val detectionConfidence: Float,
+    val detectionDetails: String
 ```
 
-#### [app/build.gradle.kts](file:///C:/DEV/simpe-bridge-appmovil/app/build.gradle.kts)
+#### [MessageMappers.kt](file:///C:/DEV/simpe-bridge-appmovil/app/src/main/java/com/simpe/bridge/appmovil/data/local/MessageMappers.kt)
 
-- Ensure the plugin is applied without a version (it will inherit from the root).
-- Ensure `kotlinx-serialization-json` dependency is present.
+- Update `toDomain()` and `toEntity()` to include the new classification fields.
+
+#### [Converters.kt](file:///C:/DEV/simpe-bridge-appmovil/app/src/main/java/com/simpe/bridge/appmovil/data/local/Converters.kt)
+
+- Ensure `MessageStatus` and `SmsClassification` enums can be handled by Room if needed (or store as Strings).
 
 ---
 
-### Data Layer
-
-#### [SupabaseClient.kt](file:///C:/DEV/simpe-bridge-appmovil/app/src/main/java/com/simpe/bridge/appmovil/data/auth/SupabaseClient.kt)
-
-- I will keep this as is unless I find a reason to change the URL/Key, as it seems to be the source of truth for Supabase connection.
+### Remote Data Layer
 
 #### [SupabaseMessageService.kt](file:///C:/DEV/simpe-bridge-appmovil/app/src/main/java/com/simpe/bridge/appmovil/data/remote/SupabaseMessageService.kt)
 
-- Verify that `@Serializable` and `@SerialName` are correctly used (they are).
+- Update `MessageRecord` and `toMessageRecord()` to include the new fields for Supabase synchronization.
 
----
-
-### SMS Handling
-
-#### [SmsReceiver.kt](file:///C:/DEV/simpe-bridge-appmovil/app/src/main/java/com/simpe/bridge/appmovil/sms/SmsReceiver.kt)
-
-- Improve error logging and ensure `goAsync()` is handled correctly to prevent background execution issues.
-- Add more descriptive logs for the SINPE detection phase.
-
----
-
-### UI and Auth
-
-#### [LoginScreen.kt](file:///C:/DEV/simpe-bridge-appmovil/app/src/main/java/com/simpe/bridge/appmovil/ui/screens/login/LoginScreen.kt)
-
-- Minor UI tweaks for consistency with Material 3 if needed.
-
-#### [SessionManager.kt](file:///C:/DEV/simpe-bridge-appmovil/app/src/main/java/com/simpe/bridge/appmovil/data/auth/SessionManager.kt)
-
-- Ensure `EncryptedSharedPreferences` is correctly initialized.
+```kotlin
+@Serializable
+data class MessageRecord(
+    // ... existing fields ...
+    @SerialName("classification")        val classification: String,
+    @SerialName("detection_confidence")  val detectionConfidence: Float,
+    @SerialName("detection_details")     val detectionDetails: String
+)
+```
 
 ## Verification Plan
 
 ### Automated Tests
-- Run Gradle sync: `./gradlew help`
-- Build the app: `./gradlew :app:assembleDebug`
+- Run `./gradlew :app:assembleDebug` to verify compilation and Room schema generation.
+- (Optional) Add a unit test for `MessageMappers` to verify data mapping.
 
 ### Manual Verification
-- Deploy to emulator/device: `adb install app/build/outputs/apk/debug/app-debug.apk`
-- Monitor logs: `adb logcat | grep SmsReceiver`
+- Deploy to device and receive a SINPE SMS.
+- Check logs to confirm data is correctly saved with classification.
+- Verify Supabase receives the new fields if the remote table is updated.
