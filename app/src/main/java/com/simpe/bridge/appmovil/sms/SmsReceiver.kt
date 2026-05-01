@@ -45,7 +45,7 @@ class SmsReceiver : BroadcastReceiver() {
 
                 // Shared repository and DAO
                 val dao = AppDatabase.getInstance(context.applicationContext).messageDao()
-                val repository = MessageRepositoryImpl(dao)
+                val repository = MessageRepositoryImpl(dao, context.applicationContext)
                 val saveMessageUseCase = SaveMessageUseCase(repository)
                 val processSms = ProcessSmsUseCase(context)
                 val validateSms = ValidateSmsUseCase()

@@ -15,6 +15,9 @@ interface MessageDao {
     @Query("SELECT * FROM messages ORDER BY createdAt DESC")
     fun getAll(): Flow<List<MessageEntity>>
 
+    @Query("SELECT * FROM messages WHERE status = 'PENDING' OR status = 'FAILED' ORDER BY createdAt ASC LIMIT 100")
+    suspend fun getUnsynced(): List<MessageEntity>
+
     @Query("UPDATE messages SET status = :status, lastAttemptAt = :lastAttemptAt, retryCount = retryCount + 1 WHERE messageId = :id")
     suspend fun updateStatus(id: String, status: MessageStatus, lastAttemptAt: Long)
 }

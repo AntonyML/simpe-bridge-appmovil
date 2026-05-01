@@ -5,6 +5,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    id("org.jetbrains.kotlin.plugin.serialization")
     id("com.google.devtools.ksp")
 }
 
@@ -68,6 +69,8 @@ android {
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "/META-INF/INDEX.LIST"
+            excludes += "/META-INF/io.netty.versions.properties"
         }
     }
 }
@@ -99,6 +102,19 @@ dependencies {
 
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("com.google.code.gson:gson:2.11.0")
+
+    // Supabase
+    implementation(platform("io.github.jan-tennert.supabase:bom:3.1.4"))
+    implementation("io.github.jan-tennert.supabase:postgrest-kt")
+    implementation("io.github.jan-tennert.supabase:auth-kt")
+    // Ktor engine requerido por supabase-kt
+    implementation("io.ktor:ktor-client-okhttp:3.0.3")
+    // Serialización (requerida por supabase-kt Postgrest)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+    // Sesión cifrada
+    implementation("androidx.security:security-crypto:1.1.0-alpha06")
+    // WorkManager para sync en background
+    implementation("androidx.work:work-runtime-ktx:2.9.1")
 
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
