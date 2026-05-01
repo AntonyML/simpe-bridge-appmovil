@@ -38,7 +38,7 @@ class MessagesViewModel(
             return object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
                     val dao = AppDatabase.getInstance(appContext).messageDao()
-                    val repository = MessageRepositoryImpl(dao)
+                    val repository = MessageRepositoryImpl(dao, appContext)
                     val getMessagesUseCase = GetMessagesUseCase(repository)
                     val saveMessageUseCase = SaveMessageUseCase(repository)
 

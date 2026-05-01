@@ -23,6 +23,7 @@ class SupabaseMessageService(private val sessionManager: SessionManager) {
                 supabaseClient.from("messages").upsert(records) {
                     onConflict = "message_id"
                 }
+                Unit
             }
         }
 }

@@ -1,0 +1,8 @@
+- [x] Research existing build configuration
+- [x] Fix Gradle plugin error
+	- [x] Update root `build.gradle.kts`
+	- [x] Update `app/build.gradle.kts`
+- [x] Fix compilation errors
+	- [x] Fix `MessagesViewModel` factory
+	- [x] Fix `SupabaseMessageService` return type
+- [x] Verify build and sync
