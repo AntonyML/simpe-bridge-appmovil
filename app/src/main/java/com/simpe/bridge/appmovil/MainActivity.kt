@@ -20,11 +20,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.simpe.bridge.appmovil.data.auth.SessionManager
 import com.simpe.bridge.appmovil.domain.usecases.MessageStatus
 import com.simpe.bridge.appmovil.domain.usecases.ProcessSmsUseCase
 import com.simpe.bridge.appmovil.notifications.NotificationHelper
 import com.simpe.bridge.appmovil.ui.components.AppTopBar
 import com.simpe.bridge.appmovil.ui.components.BottomNavBar
+import com.simpe.bridge.appmovil.ui.components.Screen
 import com.simpe.bridge.appmovil.ui.navigation.NavGraph
 import com.simpe.bridge.appmovil.ui.screens.messages.MessagesViewModel
 import com.simpe.bridge.appmovil.ui.theme.SimpeBridgeTheme
@@ -33,6 +35,7 @@ class MainActivity : ComponentActivity() {
 
     private var hasSmsPermissions by mutableStateOf(false)
     private var isListenerEnabled by mutableStateOf(true)
+    private lateinit var sessionManager: SessionManager
 
     private val smsPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -56,6 +59,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
+        sessionManager = SessionManager(applicationContext)
         NotificationHelper.createNotificationChannel(this)
         checkPermissions()
 
@@ -73,47 +77,51 @@ class MainActivity : ComponentActivity() {
                 Scaffold(
                     modifier = Modifier.fillMaxSize(),
                     topBar = {
-                        AppTopBar(
-                            messageCount = messages.size,
-                            onTestSmsClick = {
-                                val processSms = ProcessSmsUseCase(applicationContext)
-                                val testMessage = processSms(
-                                    sender = "TEST-SENDER",
-                                    body = "Este es un mensaje de prueba para SIMPE Bridge.",
-                                    timestamp = System.currentTimeMillis(),
-                                    serviceCenter = null,
-                                    protocolId = 0,
-                                    smsStatus = 0,
-                                    isStatusReport = false,
-                                    isReplyPathPresent = false,
-                                    multipartRef = 0,
-                                    multipartSeq = 1,
-                                    multipartTotal = 1,
-                                    subscriptionId = 1,
-                                    simSlot = 0,
-                                    networkOperator = "TEST-OP",
-                                    pdu = "000102030405060708090A0B0C0D0E0F",
-                                    format = "3gpp",
-                                    messageStatus = MessageStatus.SENT
-                                )
-                                viewModel.saveMessage(testMessage)
-                                Toast.makeText(this, "SMS de prueba generado", Toast.LENGTH_SHORT).show()
-                            }
-                        )
+                        if (currentRoute != Screen.Login.route) {
+                            AppTopBar(
+                                messageCount = messages.size,
+                                onTestSmsClick = {
+                                    val processSms = ProcessSmsUseCase(applicationContext)
+                                    val testMessage = processSms(
+                                        sender = "TEST-SENDER",
+                                        body = "Este es un mensaje de prueba para SIMPE Bridge.",
+                                        timestamp = System.currentTimeMillis(),
+                                        serviceCenter = null,
+                                        protocolId = 0,
+                                        smsStatus = 0,
+                                        isStatusReport = false,
+                                        isReplyPathPresent = false,
+                                        multipartRef = 0,
+                                        multipartSeq = 1,
+                                        multipartTotal = 1,
+                                        subscriptionId = 1,
+                                        simSlot = 0,
+                                        networkOperator = "TEST-OP",
+                                        pdu = "000102030405060708090A0B0C0D0E0F",
+                                        format = "3gpp",
+                                        messageStatus = MessageStatus.SENT
+                                    )
+                                    viewModel.saveMessage(testMessage)
+                                    Toast.makeText(this, "SMS de prueba generado", Toast.LENGTH_SHORT).show()
+                                }
+                            )
+                        }
                     },
                     bottomBar = {
-                        BottomNavBar(
-                            currentRoute = currentRoute,
-                            onNavigate = { route ->
-                                navController.navigate(route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
+                        if (currentRoute != Screen.Login.route) {
+                            BottomNavBar(
+                                currentRoute = currentRoute,
+                                onNavigate = { route ->
+                                    navController.navigate(route) {
+                                        popUpTo(navController.graph.startDestinationId) {
+                                            saveState = true
+                                        }
+                                        launchSingleTop = true
+                                        restoreState = true
                                     }
-                                    launchSingleTop = true
-                                    restoreState = true
                                 }
-                            }
-                        )
+                            )
+                        }
                     }
                 ) { innerPadding ->
                     NavGraph(
@@ -123,6 +131,13 @@ class MainActivity : ComponentActivity() {
                         isListenerEnabled = isListenerEnabled,
                         onListenerToggle = { isListenerEnabled = it },
                         onRequestPermissions = { requestSmsPermissions() },
+                        onLogout = {
+                            sessionManager.clearSession()
+                            navController.navigate(Screen.Login.route) {
+                                popUpTo(0) { inclusive = true }
+                            }
+                            Toast.makeText(this, "Sesión cerrada", Toast.LENGTH_SHORT).show()
+                        },
                         onCopyText = { copyToClipboard("Mensaje", it) },
                         onCopyJson = { copyToClipboard("JSON", it) },
                         modifier = Modifier.padding(innerPadding)

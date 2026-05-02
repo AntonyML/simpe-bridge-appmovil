@@ -13,6 +13,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
+    object Login : Screen("login", "", Icons.Rounded.Message) // Dummy icon/label for Login
     object Messages : Screen("messages", "Mensajes", Icons.Rounded.Message)
     object QR : Screen("qr", "Capturar QR", Icons.Rounded.QrCodeScanner)
     object Settings : Screen("settings", "Ajustes", Icons.Rounded.Settings)
