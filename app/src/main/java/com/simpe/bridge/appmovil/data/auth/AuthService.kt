@@ -1,32 +1,15 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// TOMBSTONE — this file has been replaced as part of the auth refactor.
+//
+// AuthService was dissolved into two focused classes:
+//
+//   MOVED TO → data/remote/auth/SupabaseAuthDataSource.kt
+//               (raw Supabase SDK calls: signInWithEmail, signOut)
+//
+//   MOVED TO → data/repository/AuthRepositoryImpl.kt
+//               (phone→email mapping, session persistence, profile upsert)
+//
+// DO NOT add new code here.
+// Delete this file once you confirm no other class imports it.
+// ─────────────────────────────────────────────────────────────────────────────
 package com.simpe.bridge.appmovil.data.auth
-
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.builtin.Email
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-
-data class AuthSession(val accessToken: String, val refreshToken: String)
-
-class AuthService {
-
-    /**
-     * El número de teléfono se usa como identidad en formato email:
-     * "88887777" → "88887777@simpe.bridge"
-     * Supabase maneja el hash de la contraseña internamente.
-     */
-    suspend fun login(phone: String, password: String): Result<AuthSession> =
-        withContext(Dispatchers.IO) {
-            runCatching {
-                supabaseClient.auth.signInWith(Email) {
-                    email = "$phone@simpe.bridge"
-                    this.password = password
-                }
-                val session = supabaseClient.auth.currentSessionOrNull()
-                    ?: throw Exception("No se pudo obtener la sesión de Supabase")
-                AuthSession(
-                    accessToken  = session.accessToken,
-                    refreshToken = session.refreshToken ?: ""
-                )
-            }
-        }
-}

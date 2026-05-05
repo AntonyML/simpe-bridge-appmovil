@@ -1,17 +1,12 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// TOMBSTONE — this file has been replaced as part of the auth refactor.
+//
+//   MOVED TO → data/repository/AuthRepositoryImpl.kt
+//
+// The new AuthRepositoryImpl lives in data/repository/ alongside
+// MessageRepositoryImpl, following the consistent project convention.
+//
+// DO NOT add new code here.
+// Delete this file once you confirm no other class imports it.
+// ─────────────────────────────────────────────────────────────────────────────
 package com.simpe.bridge.appmovil.data.auth
-
-import com.simpe.bridge.appmovil.domain.auth.AuthRepository
-
-class AuthRepositoryImpl(
-    private val authService: AuthService,
-    private val sessionManager: SessionManager
-) : AuthRepository {
-
-    override suspend fun login(phone: String, password: String): Result<Unit> =
-        authService.login(phone, password).map { session ->
-            sessionManager.saveSession(session.accessToken, session.refreshToken)
-        }
-
-    override fun isLoggedIn() = sessionManager.isLoggedIn()
-    override fun logout()     = sessionManager.clearSession()
-}

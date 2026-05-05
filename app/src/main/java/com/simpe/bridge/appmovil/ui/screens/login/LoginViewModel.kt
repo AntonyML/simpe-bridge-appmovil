@@ -4,9 +4,10 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.simpe.bridge.appmovil.data.auth.AuthRepositoryImpl
-import com.simpe.bridge.appmovil.data.auth.AuthService
 import com.simpe.bridge.appmovil.data.auth.SessionManager
+import com.simpe.bridge.appmovil.data.remote.auth.SupabaseAuthDataSource
+import com.simpe.bridge.appmovil.data.remote.auth.SupabaseProfileDataSource
+import com.simpe.bridge.appmovil.data.repository.AuthRepositoryImpl
 import com.simpe.bridge.appmovil.domain.auth.LoginUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -41,9 +42,17 @@ class LoginViewModel(private val loginUseCase: LoginUseCase) : ViewModel() {
         fun factory(context: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    val sessionManager = SessionManager(context.applicationContext)
-                    val authService    = AuthService()
-                    val repo           = AuthRepositoryImpl(authService, sessionManager)
+                    // Manual dependency wiring (no DI framework).
+                    // The ViewModel only knows about the UseCase.
+                    // All data-layer classes are wired here and stay invisible to the UI.
+                    val sessionManager    = SessionManager(context.applicationContext)
+                    val authDataSource    = SupabaseAuthDataSource()
+                    val profileDataSource = SupabaseProfileDataSource()
+                    val repo              = AuthRepositoryImpl(
+                        authDataSource    = authDataSource,
+                        profileDataSource = profileDataSource,
+                        sessionManager    = sessionManager
+                    )
                     @Suppress("UNCHECKED_CAST")
                     return LoginViewModel(LoginUseCase(repo)) as T
                 }
