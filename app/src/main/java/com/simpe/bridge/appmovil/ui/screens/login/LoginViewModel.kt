@@ -1,6 +1,7 @@
 package com.simpe.bridge.appmovil.ui.screens.login
 
 import android.content.Context
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -30,15 +31,35 @@ class LoginViewModel(private val loginUseCase: LoginUseCase) : ViewModel() {
             return
         }
         viewModelScope.launch {
+            Log.d(TAG, "Iniciando intento de login para: $phone")
             _state.value = LoginUiState(isLoading = true)
             loginUseCase(phone.trim(), password).fold(
-                onSuccess = { _state.value = LoginUiState(success = true) },
-                onFailure = { _state.value = LoginUiState(error = it.message ?: "Error al iniciar sesión") }
+                onSuccess = { 
+                    Log.i(TAG, "Login exitoso para: $phone")
+                    _state.value = LoginUiState(success = true) 
+                },
+                onFailure = { 
+                    val errorMsg = it.message ?: ""
+                    Log.e(TAG, "Error de login para $phone: $errorMsg", it)
+                    
+                    val userFriendlyError = when {
+                        errorMsg.contains("invalid_credentials", ignoreCase = true) -> 
+                            "Teléfono o contraseña incorrectos"
+                        errorMsg.contains("network", ignoreCase = true) || 
+                        errorMsg.contains("Permission denied", ignoreCase = true) ||
+                        errorMsg.contains("Failed to connect", ignoreCase = true) ->
+                            "Error de conexión. Revisa tu internet."
+                        else -> "Ocurrió un error inesperado. Inténtalo de nuevo."
+                    }
+                    _state.value = LoginUiState(error = userFriendlyError)
+                }
             )
         }
     }
 
     companion object {
+        private const val TAG = "LoginViewModel"
+
         fun factory(context: Context): ViewModelProvider.Factory =
             object : ViewModelProvider.Factory {
                 override fun <T : ViewModel> create(modelClass: Class<T>): T {

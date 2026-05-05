@@ -24,7 +24,8 @@ fun SettingsScreen(
     isListenerEnabled: Boolean,
     onListenerToggle: (Boolean) -> Unit,
     hasSmsPermissions: Boolean,
-    onRequestPermissions: () -> Unit
+    onRequestPermissions: () -> Unit,
+    onLogout: () -> Unit
 ) {
     val context = LocalContext.current
     val settingsManager = remember { SettingsManager(context) }
@@ -87,6 +88,23 @@ fun SettingsScreen(
                 value = "Solo Android",
                 icon = Icons.Rounded.CellTower
             )
+        }
+
+        // Logout Section
+        Button(
+            onClick = onLogout,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 16.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer
+            ),
+            shape = RoundedCornerShape(20.dp)
+        ) {
+            Icon(Icons.Rounded.Logout, contentDescription = null)
+            Spacer(Modifier.width(8.dp))
+            Text("Cerrar sesión")
         }
     }
 

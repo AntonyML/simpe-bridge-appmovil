@@ -7,6 +7,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.simpe.bridge.appmovil.domain.usecases.SmsMessage
 import com.simpe.bridge.appmovil.ui.components.Screen
+import com.simpe.bridge.appmovil.ui.screens.login.LoginScreen
 import com.simpe.bridge.appmovil.ui.screens.messages.MessagesScreen
 import com.simpe.bridge.appmovil.ui.screens.qr.QRScreen
 import com.simpe.bridge.appmovil.ui.screens.settings.SettingsScreen
@@ -19,15 +20,26 @@ fun NavGraph(
     isListenerEnabled: Boolean,
     onListenerToggle: (Boolean) -> Unit,
     onRequestPermissions: () -> Unit,
+    onLogout: () -> Unit,
     onCopyText: (String) -> Unit,
     onCopyJson: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Messages.route,
+        startDestination = Screen.Login.route,
         modifier = modifier
     ) {
+        composable(Screen.Login.route) {
+            LoginScreen(
+                context = navController.context,
+                onLoginSuccess = {
+                    navController.navigate(Screen.Messages.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
+                    }
+                }
+            )
+        }
         composable(Screen.Messages.route) {
             MessagesScreen(
                 messages = messages,
@@ -43,7 +55,8 @@ fun NavGraph(
                 isListenerEnabled = isListenerEnabled,
                 onListenerToggle = onListenerToggle,
                 hasSmsPermissions = hasSmsPermissions,
-                onRequestPermissions = onRequestPermissions
+                onRequestPermissions = onRequestPermissions,
+                onLogout = onLogout
             )
         }
     }
