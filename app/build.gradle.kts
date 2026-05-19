@@ -42,6 +42,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
+            buildConfigField("String", "RECEIPT_UPLOAD_URL", "\"\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -50,6 +51,7 @@ android {
         debug {
             // Ensure debug builds also get unique versions for local testing
             versionNameSuffix = "-debug"
+            buildConfigField("String", "RECEIPT_UPLOAD_URL", "\"\"")
         }
     }
 
@@ -64,6 +66,7 @@ android {
 
     buildFeatures {
         compose = true
+        buildConfig = true
     }
 
     packaging {
@@ -86,6 +89,11 @@ dependencies {
     implementation("androidx.activity:activity-compose:1.9.3")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.6")
     implementation("androidx.navigation:navigation-compose:2.8.5")
+    implementation("androidx.camera:camera-core:1.4.1")
+    implementation("androidx.camera:camera-camera2:1.4.1")
+    implementation("androidx.camera:camera-lifecycle:1.4.1")
+    implementation("androidx.camera:camera-view:1.4.1")
+    implementation("androidx.exifinterface:exifinterface:1.3.7")
 
     implementation(composeBom)
     androidTestImplementation(composeBom)
@@ -93,6 +101,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
+    implementation("io.coil-kt:coil-compose:2.7.0")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
@@ -109,6 +118,7 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:auth-kt")
     // Ktor engine requerido por supabase-kt
     implementation("io.ktor:ktor-client-okhttp:3.0.3")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
     // Serialización (requerida por supabase-kt Postgrest)
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
     // Sesión cifrada
