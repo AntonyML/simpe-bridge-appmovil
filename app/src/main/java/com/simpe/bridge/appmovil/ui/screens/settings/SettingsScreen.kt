@@ -25,6 +25,8 @@ fun SettingsScreen(
     onListenerToggle: (Boolean) -> Unit,
     hasSmsPermissions: Boolean,
     onRequestPermissions: () -> Unit,
+    hasCameraPermission: Boolean,
+    onRequestCameraPermission: () -> Unit,
     onLogout: () -> Unit
 ) {
     val context = LocalContext.current
@@ -73,6 +75,13 @@ fun SettingsScreen(
                 icon = Icons.Rounded.Lock,
                 isGranted = hasSmsPermissions,
                 onClick = onRequestPermissions
+            )
+            SettingsPermissionItem(
+                title = "Cámara",
+                status = if (hasCameraPermission) "Concedido" else "Requerido para escanear",
+                icon = Icons.Rounded.PhotoCamera,
+                isGranted = hasCameraPermission,
+                onClick = onRequestCameraPermission
             )
         }
 
