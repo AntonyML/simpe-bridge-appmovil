@@ -21,7 +21,7 @@ import com.simpe.bridge.appmovil.ui.components.MessageItem
 fun MessagesScreen(
     messages: List<SmsMessage>,
     onCopyText: (String) -> Unit,
-    onCopyJson: (String) -> Unit
+    onCopyJson: (String) -> Unit,
 ) {
     var selectedMessage by remember { mutableStateOf<SmsMessage?>(null) }
 
