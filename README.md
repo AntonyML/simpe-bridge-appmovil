@@ -1,33 +1,49 @@
-# SIMPE Bridge - Android Collector
+# SINPE Bridge - Android App
 
-![Versión](https://img.shields.io/badge/version-auto--generated-blue)
-![Platform](https://img.shields.io/badge/platform-Android-green)
-![Kotlin](https://img.shields.io/badge/language-Kotlin-purple)
+Kotlin MVVM app para capturar y procesar SMS SINPE.
 
-**SIMPE Bridge** es una solución de grado industrial para la captura, persistencia y trazabilidad de mensajes SMS en dispositivos Android. Diseñada con un enfoque en sistemas críticos, seguridad y auditoría distribuida.
+## Quick Start
 
-## 🚀 Características Principales
+### In Android Studio
 
-- **Captura de SMS en Tiempo Real**: Listener nativo optimizado para funcionar en segundo plano.
-- **Pipeline de Procesamiento Robusto**:
-    - **Validación**: Filtros de integridad y reglas de negocio.
-    - **Idempotencia**: Prevención de duplicados mediante hashing SHA-256.
-    - **Seguridad**: Firmado de payloads con HMAC SHA-256.
-- **Trazabilidad Total**: Generación de Message IDs y Correlation IDs únicos para auditoría end-to-end.
-- **UI Moderna (Jetpack Compose)**: Dashboard reactivo, modo oscuro dinámico y visualización detallada de metadatos.
-- **Arquitectura Limpia**: MVVM + Repository Pattern + Use Cases.
+1. Open `simpe-bridge-appmovil`
+2. Build APK:
+```bash
+./gradlew assembleDebug
+```
 
-## 🛠️ Stack Tecnológico
+3. Initialize HTTP client in `MainActivity.kt`:
+```kotlin
+val httpConfig = HttpClientConfig(
+    baseUrl = "https://api.tonyml.com",
+    apiKey = "test-api-key-12345",
+    timeoutSeconds = 30,
+    enableLogging = BuildConfig.DEBUG,
+)
 
-- **Lenguaje**: Kotlin 1.9+
-- **UI**: Jetpack Compose (Material 3)
-- **Persistencia**: Room Database (Offline-first)
-- **Asincronía**: Coroutines & Flow
-- **Serialización**: Gson (API Ready)
+SinpeBridgeHttpManager.initialize(this, httpConfig)
+```
 
-## 📦 Automatización y DevOps
+## Features
 
-El proyecto cuenta con un sistema de **Auto-Versioning** determinista. Cada vez que el código se compila o se despliega al móvil, el `versionCode` y `versionName` se actualizan automáticamente basados en el timestamp (YYMMDDHHMM), asegurando que cada build sea única y rastreable.
+- ✅ SMS capture (BroadcastReceiver)
+- ✅ HMAC SHA-256 signing
+- ✅ Device anonymization
+- ✅ Automatic retries
+- ✅ Multipart image uploads
+- ✅ Request tracing
+- ✅ Offline queue
+
+## Architecture
+
+- **MVVM**: ViewModel + Repository pattern
+- **Room**: Local database (offline-first)
+- **Coroutines**: Async/await
+- **Compose**: Modern UI (Material 3)
+
+## Auto-Versioning
+
+Each build generates unique `versionCode` and `versionName` based on timestamp (YYMMDDHHMM).
 
 ## ⌨️ Desarrollo sin Android Studio
 
