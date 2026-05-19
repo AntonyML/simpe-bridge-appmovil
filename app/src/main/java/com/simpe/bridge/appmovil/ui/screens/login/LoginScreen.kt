@@ -183,8 +183,8 @@ fun LoginScreen(context: Context, onLoginSuccess: () -> Unit) {
                 },
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Logo mark — rounded square with wallet icon
-                Box(
+// Logo mark — rounded square with wallet icon
+              /*  Box(
                     modifier = Modifier
                         .size(72.dp)
                         .clip(RoundedCornerShape(20.dp))
@@ -198,8 +198,8 @@ fun LoginScreen(context: Context, onLoginSuccess: () -> Unit) {
                         modifier     = Modifier.size(36.dp)
                     )
                 }
-
-                Spacer(Modifier.height(16.dp))
+*/
+                // Spacer(Modifier.height(16.dp))
 
                 Text(
                     text  = "SIMPE Bridge",
