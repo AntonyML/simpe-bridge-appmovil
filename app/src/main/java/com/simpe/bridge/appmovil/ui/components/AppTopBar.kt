@@ -44,13 +44,7 @@ fun AppTopBar(
                         .clip(RoundedCornerShape(8.dp))
                         .background(MaterialTheme.colorScheme.secondaryContainer)
                         .padding(horizontal = 8.dp, vertical = 2.dp)
-                ) {
-                    Text(
-                        text = "Solo Android",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
+                )
             }
         },
         actions = {

@@ -34,6 +34,7 @@ import com.simpe.bridge.appmovil.ui.theme.SimpeBridgeTheme
 class MainActivity : ComponentActivity() {
 
     private var hasSmsPermissions by mutableStateOf(false)
+    private var hasCameraPermission by mutableStateOf(false)
     private var isListenerEnabled by mutableStateOf(true)
     private lateinit var sessionManager: SessionManager
 
@@ -54,6 +55,17 @@ class MainActivity : ComponentActivity() {
         if (isGranted) {
             NotificationHelper.showServiceActiveNotification(this)
         }
+    }
+
+    private val cameraPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        hasCameraPermission = isGranted
+        Toast.makeText(
+            this,
+            if (isGranted) "Permiso de cámara concedido" else "Permiso de cámara requerido para escanear",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -128,9 +140,11 @@ class MainActivity : ComponentActivity() {
                         navController = navController,
                         messages = messages,
                         hasSmsPermissions = hasSmsPermissions,
+                        hasCameraPermission = hasCameraPermission,
                         isListenerEnabled = isListenerEnabled,
                         onListenerToggle = { isListenerEnabled = it },
                         onRequestPermissions = { requestSmsPermissions() },
+                        onRequestCameraPermission = { requestCameraPermission() },
                         onLogout = {
                             sessionManager.clearSession()
                             navController.navigate(Screen.Login.route) {
@@ -149,6 +163,7 @@ class MainActivity : ComponentActivity() {
 
     private fun checkPermissions() {
         hasSmsPermissions = hasAllSmsPermissions()
+        hasCameraPermission = hasCameraPermission()
         
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
@@ -170,9 +185,17 @@ class MainActivity : ComponentActivity() {
         )
     }
 
+    private fun requestCameraPermission() {
+        cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+    }
+
     private fun hasAllSmsPermissions(): Boolean {
         return ContextCompat.checkSelfPermission(this, Manifest.permission.RECEIVE_SMS) == PackageManager.PERMISSION_GRANTED &&
                ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED
+    }
+
+    private fun hasCameraPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
     }
 
     private fun copyToClipboard(label: String, text: String) {

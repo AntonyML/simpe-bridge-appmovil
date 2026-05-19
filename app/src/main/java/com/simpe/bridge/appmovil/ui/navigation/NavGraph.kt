@@ -9,7 +9,7 @@ import com.simpe.bridge.appmovil.domain.usecases.SmsMessage
 import com.simpe.bridge.appmovil.ui.components.Screen
 import com.simpe.bridge.appmovil.ui.screens.login.LoginScreen
 import com.simpe.bridge.appmovil.ui.screens.messages.MessagesScreen
-import com.simpe.bridge.appmovil.ui.screens.qr.QRScreen
+import com.simpe.bridge.appmovil.ui.screens.scan.ScanScreen
 import com.simpe.bridge.appmovil.ui.screens.settings.SettingsScreen
 
 @Composable
@@ -17,9 +17,11 @@ fun NavGraph(
     navController: NavHostController,
     messages: List<SmsMessage>,
     hasSmsPermissions: Boolean,
+    hasCameraPermission: Boolean,
     isListenerEnabled: Boolean,
     onListenerToggle: (Boolean) -> Unit,
     onRequestPermissions: () -> Unit,
+    onRequestCameraPermission: () -> Unit,
     onLogout: () -> Unit,
     onCopyText: (String) -> Unit,
     onCopyJson: (String) -> Unit,
@@ -48,7 +50,9 @@ fun NavGraph(
             )
         }
         composable(Screen.QR.route) {
-            QRScreen()
+            ScanScreen(
+                onClose = { navController.navigate(Screen.Messages.route) }
+            )
         }
         composable(Screen.Settings.route) {
             SettingsScreen(
@@ -56,6 +60,8 @@ fun NavGraph(
                 onListenerToggle = onListenerToggle,
                 hasSmsPermissions = hasSmsPermissions,
                 onRequestPermissions = onRequestPermissions,
+                hasCameraPermission = hasCameraPermission,
+                onRequestCameraPermission = onRequestCameraPermission,
                 onLogout = onLogout
             )
         }
