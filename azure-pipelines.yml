@@ -1,0 +1,30 @@
+trigger:
+- main
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  JAVA_VERSION: '17'
+
+steps:
+- checkout: self
+  fetchDepth: 0
+
+- task: JavaToolInstaller@0
+  inputs:
+    versionSpec: '17'
+    jdkArchitectureOption: 'x64'
+    jdkSourceOption: 'PreInstalled'
+  displayName: 'Setup Java 17'
+
+- script: |
+    chmod +x gradlew
+    ./gradlew :app:assembleRelease
+  displayName: 'Build APK'
+
+- task: PublishPipelineArtifact@1
+  inputs:
+    targetPath: 'app/build/outputs/apk/release'
+    artifact: 'release-apk'
+  displayName: 'Publish APK Artifact'
