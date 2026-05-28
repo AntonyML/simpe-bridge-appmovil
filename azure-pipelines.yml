@@ -107,3 +107,14 @@ stages:
         targetPath: 'app/build/outputs/apk/release'
         artifact: 'release-apk'
         publishLocation: 'pipeline'
+
+    - task: UniversalPackages@0
+      displayName: 'Publish APK to Artifacts feed'
+      inputs:
+        command: 'publish'
+        publishDirectory: 'app/build/outputs/apk/release'
+        feedsToUsePublish: 'internal'
+        vstsFeedPublish: 'ANTONYMONGELOPEZ'
+        vstsFeedPackagePublish: 'simpe-bridge-apk'
+        versionOption: 'custom'
+        versionPublish: '$(VERSION_NAME)'
