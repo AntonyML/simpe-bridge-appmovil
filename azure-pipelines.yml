@@ -1,21 +1,281 @@
 trigger:
-- main
+  branches:
+    include:
+      - main
+
+pr: none
 
 pool:
   vmImage: 'ubuntu-latest'
 
-steps:
-- checkout: self
-  fetchDepth: 0
+variables:
+  JAVA_VERSION: '17'
+  GRADLE_USER_HOME: $(Pipeline.Workspace)/.gradle
 
-- script: |
-    java -version
-    chmod +x gradlew
-    ./gradlew :app:assembleRelease --no-daemon
+# ─────────────────────────────────────────────
+# STAGE 1 — VERSIONING
+# ─────────────────────────────────────────────
+stages:
+- stage: Versioning
+  displayName: 'Resolve Version'
+  jobs:
+  - job: ResolveVersion
+    displayName: 'Compute Semantic Version'
+    steps:
+    - checkout: self
+      fetchDepth: 0
+
+    - script: |
+        set -euo pipefail
+
+        git fetch --tags --force
+
+        latest_tag=$(git tag --list 'v*.*.*' --sort=-version:refname | head -1)
+        latest_tag=${latest_tag:-v0.0.0}
+
+        version="${latest_tag#v}"
+        IFS='.' read -r major minor patch <<< "$version"
+        next_patch=$((patch + 1))
+        version_name="${major}.${minor}.${next_patch}"
+        tag_name="v${version_name}"
+        version_code="$(Build.BuildId)"
+
+        tag_exists="false"
+        if git rev-parse "refs/tags/${tag_name}" >/dev/null 2>&1; then
+          tag_exists="true"
+        fi
+
+        echo "##vso[task.setvariable variable=VERSION_NAME;isOutput=true]${version_name}"
+        echo "##vso[task.setvariable variable=VERSION_CODE;isOutput=true]${version_code}"
+        echo "##vso[task.setvariable variable=TAG_NAME;isOutput=true]${tag_name}"
+        echo "##vso[task.setvariable variable=TAG_EXISTS;isOutput=true]${tag_exists}"
+
+        echo "version_name=${version_name}"
+        echo "version_code=${version_code}"
+        echo "tag_name=${tag_name}"
+        echo "tag_exists=${tag_exists}"
+      name: bump
+      displayName: 'Compute semantic version'
+
+# ─────────────────────────────────────────────
+# STAGE 2 — BUILD
+# ─────────────────────────────────────────────
+- stage: Build
   displayName: 'Build APK'
+  dependsOn: Versioning
+  variables:
+    VERSION_NAME: $[ stageDependencies.Versioning.ResolveVersion.outputs['bump.VERSION_NAME'] ]
+    VERSION_CODE: $[ stageDependencies.Versioning.ResolveVersion.outputs['bump.VERSION_CODE'] ]
+  jobs:
+  - job: BuildAPK
+    displayName: 'Build Release APK'
+    steps:
+    - checkout: self
+      fetchDepth: 0
 
-- task: PublishPipelineArtifact@1
-  inputs:
-    targetPath: 'app/build/outputs/apk/release'
-    artifact: 'release-apk'
-  displayName: 'Publish APK Artifact'
+    - task: Cache@2
+      displayName: 'Cache Gradle dependencies'
+      inputs:
+        key: 'gradle | "$(Agent.OS)" | **/build.gradle* | **/gradle-wrapper.properties'
+        restoreKeys: |
+          gradle | "$(Agent.OS)"
+        path: $(GRADLE_USER_HOME)
+
+    - task: JavaToolInstaller@0
+      displayName: 'Setup Java 17'
+      inputs:
+        versionSpec: '17'
+        jdkArchitectureOption: 'x64'
+        jdkSourceOption: 'PreInstalled'
+
+    - script: |
+        java -version
+        chmod +x gradlew
+      displayName: 'Verify Java and grant gradlew permission'
+
+    - script: |
+        ./gradlew :app:lintDebug :app:testDebugUnitTest :app:assembleRelease \
+          --no-daemon \
+          --stacktrace \
+          -PVERSION_NAME=$(VERSION_NAME) \
+          -PVERSION_CODE=$(VERSION_CODE)
+      displayName: 'Lint, test and build release APK'
+
+    - task: PublishTestResults@2
+      displayName: 'Publish unit test results'
+      condition: always()
+      inputs:
+        testResultsFormat: 'JUnit'
+        testResultsFiles: '**/TEST-*.xml'
+        mergeTestResults: true
+        failTaskOnFailedTests: true
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Upload unsigned release APK'
+      inputs:
+        targetPath: 'app/build/outputs/apk/release'
+        artifact: 'unsigned-release-apk'
+        publishLocation: 'pipeline'
+
+# ─────────────────────────────────────────────
+# STAGE 3 — SIGN
+# ─────────────────────────────────────────────
+- stage: Sign
+  displayName: 'Sign APK'
+  dependsOn:
+    - Versioning
+    - Build
+  variables:
+    VERSION_NAME: $[ stageDependencies.Versioning.ResolveVersion.outputs['bump.VERSION_NAME'] ]
+    TAG_NAME: $[ stageDependencies.Versioning.ResolveVersion.outputs['bump.TAG_NAME'] ]
+  jobs:
+  - job: SignAPK
+    displayName: 'Sign Release APK'
+    steps:
+    - checkout: none
+
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download unsigned APK'
+      inputs:
+        artifact: 'unsigned-release-apk'
+        path: $(Pipeline.Workspace)/unsigned
+
+    - script: |
+        set -euo pipefail
+        apk_file=$(find $(Pipeline.Workspace)/unsigned -name "*.apk" | head -1)
+        if [ -z "${apk_file}" ]; then
+          echo "##[error]No APK found in unsigned artifact"
+          exit 1
+        fi
+        echo "Found APK: ${apk_file}"
+        echo "##vso[task.setvariable variable=APK_FILE]${apk_file}"
+      displayName: 'Resolve APK file'
+
+    - script: |
+        set -euo pipefail
+        sdk_root="${ANDROID_HOME:-/usr/local/lib/android/sdk}"
+        apksigner_path=$(find "${sdk_root}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -1 || true)
+
+        if [ -z "${apksigner_path}" ]; then
+          echo "apksigner not found, installing build-tools..."
+          yes | sdkmanager --licenses >/dev/null 2>&1 || true
+          sdkmanager "build-tools;36.0.0"
+          apksigner_path=$(find "${sdk_root}/build-tools" -type f -name apksigner 2>/dev/null | sort -V | tail -1 || true)
+        fi
+
+        if [ -z "${apksigner_path}" ]; then
+          echo "##[error]Unable to locate apksigner"
+          exit 1
+        fi
+
+        echo "Found apksigner: ${apksigner_path}"
+        echo "##vso[task.setvariable variable=APKSIGNER_PATH]${apksigner_path}"
+      displayName: 'Resolve apksigner path'
+
+    - script: |
+        set -euo pipefail
+        version_name="$(VERSION_NAME)"
+        output_apk="simpe-bridge-${version_name}.apk"
+
+        if [ -n "${ANDROID_KEYSTORE:-}" ] && \
+           [ -n "${KEYSTORE_PASSWORD:-}" ] && \
+           [ -n "${KEY_ALIAS:-}" ] && \
+           [ -n "${KEY_PASSWORD:-}" ]; then
+
+          echo "Signing with keystore..."
+          echo "${ANDROID_KEYSTORE}" | base64 -d > release-keystore.jks
+
+          "$(APKSIGNER_PATH)" sign \
+            --ks release-keystore.jks \
+            --ks-pass pass:"${KEYSTORE_PASSWORD}" \
+            --ks-key-alias "${KEY_ALIAS}" \
+            --key-pass pass:"${KEY_PASSWORD}" \
+            --out "${output_apk}" \
+            "$(APK_FILE)"
+
+          "$(APKSIGNER_PATH)" verify --verbose "${output_apk}"
+          echo "APK signed successfully: ${output_apk}"
+        else
+          echo "##[warning]No keystore secrets found — publishing unsigned APK as fallback"
+          cp "$(APK_FILE)" "${output_apk}"
+        fi
+
+        echo "##vso[task.setvariable variable=FINAL_APK]$(pwd)/${output_apk}"
+        echo "##vso[task.setvariable variable=APK_NAME]${output_apk}"
+      displayName: 'Sign APK (or fallback unsigned)'
+      env:
+        ANDROID_KEYSTORE: $(ANDROID_KEYSTORE)
+        KEYSTORE_PASSWORD: $(KEYSTORE_PASSWORD)
+        KEY_ALIAS: $(KEY_ALIAS)
+        KEY_PASSWORD: $(KEY_PASSWORD)
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Upload final APK'
+      inputs:
+        targetPath: $(FINAL_APK)
+        artifact: 'final-apk'
+        publishLocation: 'pipeline'
+
+# ─────────────────────────────────────────────
+# STAGE 4 — RELEASE
+# ─────────────────────────────────────────────
+- stage: Release
+  displayName: 'Create Tag and GitHub Release'
+  dependsOn:
+    - Versioning
+    - Sign
+  variables:
+    VERSION_NAME: $[ stageDependencies.Versioning.ResolveVersion.outputs['bump.VERSION_NAME'] ]
+    VERSION_CODE: $[ stageDependencies.Versioning.ResolveVersion.outputs['bump.VERSION_CODE'] ]
+    TAG_NAME: $[ stageDependencies.Versioning.ResolveVersion.outputs['bump.TAG_NAME'] ]
+    TAG_EXISTS: $[ stageDependencies.Versioning.ResolveVersion.outputs['bump.TAG_EXISTS'] ]
+  jobs:
+  - job: CreateRelease
+    displayName: 'Tag and GitHub Release'
+    steps:
+    - checkout: self
+      fetchDepth: 0
+      persistCredentials: true
+
+    - task: DownloadPipelineArtifact@2
+      displayName: 'Download final APK'
+      inputs:
+        artifact: 'final-apk'
+        path: $(Pipeline.Workspace)/release-assets
+
+    - script: |
+        set -euo pipefail
+
+        if [ "$(TAG_EXISTS)" != "true" ]; then
+          git config user.name "azure-pipelines[bot]"
+          git config user.email "azure-pipelines[bot]@users.noreply.github.com"
+          git tag "$(TAG_NAME)"
+          git push origin "$(TAG_NAME)"
+          echo "Tag created and pushed: $(TAG_NAME)"
+        else
+          echo "Tag $(TAG_NAME) already exists, skipping creation."
+        fi
+      displayName: 'Create and push tag'
+
+    - script: |
+        set -euo pipefail
+
+        apk_file=$(find $(Pipeline.Workspace)/release-assets -name "*.apk" | head -1)
+        apk_name=$(basename "${apk_file}")
+
+        gh release create "$(TAG_NAME)" \
+          --title "Simpe Bridge $(TAG_NAME)" \
+          --notes "Android build autogenerated on push to main.
+
+        **Version**
+        - versionName: $(VERSION_NAME)
+        - versionCode: $(VERSION_CODE)
+
+        **Artifact**
+        - ${apk_name}" \
+          "${apk_file}"
+
+        echo "GitHub release created: $(TAG_NAME)"
+      displayName: 'Create GitHub Release'
+      env:
+        GH_TOKEN: $(GITHUB_TOKEN)
