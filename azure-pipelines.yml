@@ -2,25 +2,16 @@ trigger:
 - main
 
 pool:
-  vmImage: ubuntu-latest
-
-variables:
-  JAVA_VERSION: '17'
+  vmImage: 'ubuntu-latest'
 
 steps:
 - checkout: self
   fetchDepth: 0
 
-- task: JavaToolInstaller@0
-  inputs:
-    versionSpec: '17'
-    jdkArchitectureOption: 'x64'
-    jdkSourceOption: 'PreInstalled'
-  displayName: 'Setup Java 17'
-
 - script: |
+    java -version
     chmod +x gradlew
-    ./gradlew :app:assembleRelease
+    ./gradlew :app:assembleRelease --no-daemon
   displayName: 'Build APK'
 
 - task: PublishPipelineArtifact@1
