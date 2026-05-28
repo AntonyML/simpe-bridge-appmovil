@@ -30,9 +30,7 @@ data class HttpClientConfig(
  */
 object SinpeBridgeHttpManager {
     
-    companion object {
-        private const val TAG = "SinpeBridgeHttpManager"
-    }
+    private const val TAG = "SinpeBridgeHttpManager"
     
     private var httpClient: SinpeBridgeHttpClient? = null
     private var isInitialized = false
