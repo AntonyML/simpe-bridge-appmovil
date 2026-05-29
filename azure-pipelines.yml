@@ -36,7 +36,7 @@ stages:
         version="${latest_tag#v}"
         IFS='.' read -r major minor patch <<< "$version"
         next_patch=$((patch + 1))
-        version_name="${major}.${minor}.${next_patch}"
+        version_name="${latest_tag#v}"
         tag_name="v${version_name}"
         version_code="$(Build.BuildId)"
 
