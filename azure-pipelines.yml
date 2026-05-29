@@ -118,3 +118,146 @@ stages:
         vstsFeedPackagePublish: 'simpe-bridge-apk'
         versionOption: 'custom'
         versionPublish: '$(VERSION_NAME)'
+
+    - script: |
+        APK_URL="https://github.com/AntonyML/simpe-bridge-appmovil/releases/download/v$(VERSION_NAME)/simpe-bridge-$(VERSION_NAME).apk"
+        RELEASE_URL="https://github.com/AntonyML/simpe-bridge-appmovil/releases/tag/v$(VERSION_NAME)"
+
+        cat > /tmp/email.html << HTMLEOF
+        <!DOCTYPE html>
+        <html lang="es">
+        <head>
+          <meta charset="UTF-8"/>
+          <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+          <style>
+            body{margin:0;padding:0;background:#0f0f11;font-family:Segoe UI,Arial,sans-serif;}
+            @media screen and (max-width:600px){
+              .container{width:100%!important;}
+              .px{padding-left:20px!important;padding-right:20px!important;}
+              .title{font-size:20px!important;}
+            }
+          </style>
+        </head>
+        <body>
+          <div style="display:none;max-height:0;overflow:hidden;opacity:0;">Simpe Bridge v$(VERSION_NAME) ya esta disponible para descargar.</div>
+          <table width="100%">
+            <tr>
+              <td align="center" style="padding:32px 12px;">
+                <table width="600" class="container" style="max-width:600px;width:100%;">
+                  <tr>
+                    <td align="center" style="padding-bottom:24px;">
+                      <div style="display:inline-block;padding:8px 16px;border-radius:999px;background:#1a1a2e;border:1px solid #3b3b5c;color:#a78bfa;font-size:12px;font-weight:700;letter-spacing:1px;">
+                        SIMPE BRIDGE · PIPELINE RELEASE
+                      </div>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td style="background:#18181b;border-radius:16px;border:1px solid #27272a;">
+                      <table width="100%">
+                        <tr>
+                          <td style="height:4px;background:linear-gradient(90deg,#7c3aed,#6366f1,#38bdf8);border-radius:16px 16px 0 0;"></td>
+                        </tr>
+                        <tr>
+                          <td class="px" style="padding:36px 40px;">
+                            <p style="margin:0 0 12px;font-size:11px;color:#6366f1;font-weight:700;letter-spacing:1.5px;">
+                              NUEVA VERSION DISPONIBLE
+                            </p>
+                            <h1 class="title" style="margin:0 0 8px;font-size:28px;font-weight:800;color:#fafafa;">
+                              Simpe Bridge <span style="color:#7c3aed;">v$(VERSION_NAME)</span>
+                            </h1>
+                            <p style="margin:0 0 28px;font-size:14px;color:#71717a;">
+                              Build #$(VERSION_CODE) · Pipeline $(Build.BuildId)
+                            </p>
+                            <table width="100%" style="margin-bottom:28px;">
+                              <tr>
+                                <td style="background:#09090b;border:1px solid #27272a;border-radius:12px;padding:20px;">
+                                  <table width="100%">
+                                    <tr>
+                                      <td style="padding-bottom:10px;">
+                                        <span style="font-size:12px;color:#52525b;font-weight:600;">VERSION</span><br/>
+                                        <span style="font-size:15px;color:#e4e4e7;font-weight:700;">$(VERSION_NAME)</span>
+                                      </td>
+                                      <td style="padding-bottom:10px;">
+                                        <span style="font-size:12px;color:#52525b;font-weight:600;">BUILD CODE</span><br/>
+                                        <span style="font-size:15px;color:#e4e4e7;font-weight:700;">$(VERSION_CODE)</span>
+                                      </td>
+                                    </tr>
+                                    <tr>
+                                      <td colspan="2" style="padding-top:10px;border-top:1px solid #27272a;">
+                                        <span style="font-size:12px;color:#52525b;font-weight:600;">REPOSITORIO</span><br/>
+                                        <span style="font-size:15px;color:#e4e4e7;font-weight:700;">$(Build.Repository.Name)</span>
+                                      </td>
+                                    </tr>
+                                  </table>
+                                </td>
+                              </tr>
+                            </table>
+                            <table width="100%" style="margin-bottom:12px;">
+                              <tr>
+                                <td>
+                                  <a href="$APK_URL" style="display:block;width:100%;box-sizing:border-box;background:#7c3aed;color:#ffffff;padding:16px;border-radius:10px;font-size:15px;font-weight:700;text-align:center;text-decoration:none;">
+                                    Descargar APK v$(VERSION_NAME)
+                                  </a>
+                                </td>
+                              </tr>
+                            </table>
+                            <table width="100%">
+                              <tr>
+                                <td>
+                                  <a href="$RELEASE_URL" style="display:block;width:100%;box-sizing:border-box;background:transparent;color:#a1a1aa;padding:14px;border-radius:10px;font-size:14px;font-weight:600;text-align:center;text-decoration:none;border:1px solid #27272a;">
+                                    Ver release en GitHub
+                                  </a>
+                                </td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td style="padding:0 40px;">
+                            <div style="height:1px;background:#27272a;"></div>
+                          </td>
+                        </tr>
+                        <tr>
+                          <td class="px" style="padding:24px 40px;">
+                            <p style="margin:0 0 4px;font-size:12px;color:#52525b;font-weight:600;">DESARROLLADO POR</p>
+                            <p style="margin:0 0 6px;font-size:15px;font-weight:700;color:#e4e4e7;">Antony Monge Lopez</p>
+                            <p style="margin:0 0 16px;font-size:13px;color:#71717a;line-height:1.6;">Estudiante de Informatica · UCR · Coto Brus</p>
+                            <table>
+                              <tr>
+                                <td style="padding-right:12px;"><a href="https://github.com/AntonyML" style="font-size:13px;color:#7c3aed;text-decoration:none;">GitHub</a></td>
+                                <td style="padding-right:12px;"><a href="https://www.linkedin.com/in/antony-monge-lopez/" style="font-size:13px;color:#7c3aed;text-decoration:none;">LinkedIn</a></td>
+                                <td><a href="https://portfolio.tonyml.com/" style="font-size:13px;color:#7c3aed;text-decoration:none;">Portfolio</a></td>
+                              </tr>
+                            </table>
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td align="center" style="padding:20px 10px;">
+                      <p style="margin:0;font-size:12px;color:#52525b;">
+                        Notificacion automatica generada por Azure Pipelines · 2026 Antony Monge
+                      </p>
+                    </td>
+                  </tr>
+                </table>
+              </td>
+            </tr>
+          </table>
+        </body>
+        </html>
+        HTMLEOF
+
+        curl -s -X POST "https://api.resend.com/emails" \
+          -H "Authorization: Bearer $(RESEND_API_KEY)" \
+          -H "Content-Type: application/json" \
+          -d "{
+            \"from\": \"Simpe Bridge <no-reply@tonyml.com>\",
+            \"to\": [\"$(NOTIFY_EMAIL)\"],
+            \"subject\": \"Simpe Bridge v$(VERSION_NAME) lista para instalar\",
+            \"html\": $(python3 -c "import json,sys; print(json.dumps(open('/tmp/email.html').read()))")
+          }"
+      displayName: 'Notify release via Resend'
+      env:
+        RESEND_API_KEY: $(RESEND_API_KEY)
