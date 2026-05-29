@@ -1,0 +1,35 @@
+trigger: none
+pr: none
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  VERSION_NAME: '0.0.21'
+  VERSION_CODE: '31'
+
+jobs:
+- job: TestEmail
+  displayName: 'Test Resend Email'
+  steps:
+  - script: |
+      APK_URL="https://github.com/AntonyML/simpe-bridge-appmovil/releases/download/v$(VERSION_NAME)/simpe-bridge-$(VERSION_NAME).apk"
+      RELEASE_URL="https://github.com/AntonyML/simpe-bridge-appmovil/releases/tag/v$(VERSION_NAME)"
+
+      cat > /tmp/email.html << HTMLEOF
+      <!DOCTYPE html>
+      ... (tu HTML aquí)
+      HTMLEOF
+
+      curl -s -X POST "https://api.resend.com/emails" \
+        -H "Authorization: Bearer $(RESEND_API_KEY)" \
+        -H "Content-Type: application/json" \
+        -d "{
+          \"from\": \"Simpe Bridge <no-reply@tonyml.com>\",
+          \"to\": [\"$(NOTIFY_EMAIL)\"],
+          \"subject\": \"Simpe Bridge v$(VERSION_NAME) lista para instalar\",
+          \"html\": $(python3 -c "import json,sys; print(json.dumps(open('/tmp/email.html').read()))")
+        }"
+    displayName: 'Send test email'
+    env:
+      RESEND_API_KEY: $(RESEND_API_KEY)
