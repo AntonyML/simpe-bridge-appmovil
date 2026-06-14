@@ -4,32 +4,38 @@ import android.content.Context
 import androidx.work.*
 import com.simpe.bridge.appmovil.data.auth.SessionManager
 import com.simpe.bridge.appmovil.data.local.AppDatabase
-import com.simpe.bridge.appmovil.data.remote.SupabaseMessageService
+import com.simpe.bridge.appmovil.data.remote.NetworkResult
+import com.simpe.bridge.appmovil.data.remote.SinpeBridgeHttpManager
 import com.simpe.bridge.appmovil.domain.usecases.MessageStatus
 import java.util.concurrent.TimeUnit
 
 class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(context, params) {
 
     override suspend fun doWork(): Result {
-        val sessionManager = SessionManager(applicationContext)
-        if (!sessionManager.isLoggedIn()) return Result.success() // sin sesión: no hay nada que sincronizar
-
-        val dao     = AppDatabase.getInstance(applicationContext).messageDao()
+        val dao = AppDatabase.getInstance(applicationContext).messageDao()
         val pending = dao.getUnsynced()
         if (pending.isEmpty()) return Result.success()
 
-        val service = SupabaseMessageService(sessionManager)
-        return service.syncMessages(pending).fold(
-            onSuccess = {
-                val now = System.currentTimeMillis()
-                pending.forEach { dao.updateStatus(it.messageId, MessageStatus.SENT, now) }
-                Result.success()
-            },
-            onFailure = {
-                android.util.Log.e("SyncWorker", "Sync fallido: ${it.message}")
-                Result.retry() // WorkManager reintenta con backoff exponencial
+        val httpClient = SinpeBridgeHttpManager.getClient()
+        var allSuccess = true
+
+        pending.forEach { message ->
+            val result = httpClient.postSmsMessage(
+                smsBody = message.body,
+                sender = message.sender,
+                timestamp = message.timestamp,
+                correlationId = message.correlationId
+            )
+
+            if (result is NetworkResult.Success) {
+                dao.updateStatus(message.messageId, MessageStatus.SENT, System.currentTimeMillis())
+            } else {
+                allSuccess = false
+                android.util.Log.e("SyncWorker", "Fallo envío de mensaje ${message.messageId}")
             }
-        )
+        }
+
+        return if (allSuccess) Result.success() else Result.retry()
     }
 
     companion object {

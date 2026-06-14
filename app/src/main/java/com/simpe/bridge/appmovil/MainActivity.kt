@@ -21,6 +21,8 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.simpe.bridge.appmovil.data.auth.SessionManager
+import com.simpe.bridge.appmovil.data.remote.HttpClientConfig
+import com.simpe.bridge.appmovil.data.remote.SinpeBridgeHttpManager
 import com.simpe.bridge.appmovil.domain.usecases.MessageStatus
 import com.simpe.bridge.appmovil.domain.usecases.ProcessSmsUseCase
 import com.simpe.bridge.appmovil.notifications.NotificationHelper
@@ -72,6 +74,18 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         
         sessionManager = SessionManager(applicationContext)
+        
+        // Inicializar el Manager para el API en Fly.dev
+        if (!SinpeBridgeHttpManager.isInitialized()) {
+            SinpeBridgeHttpManager.initialize(
+                context = applicationContext,
+                config = HttpClientConfig(
+                    apiKey = "fly-dev-key", // Cambia esto si tienes un API Key específico
+                    enableLogging = true
+                )
+            )
+        }
+
         NotificationHelper.createNotificationChannel(this)
         checkPermissions()
 
