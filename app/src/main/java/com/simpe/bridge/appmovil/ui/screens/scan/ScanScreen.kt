@@ -56,6 +56,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.rememberBottomSheetScaffoldState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -142,6 +143,7 @@ fun ScanScreen(
                     uiState = uiState,
                     onRetry = viewModel::retry,
                     onUpload = viewModel::upload,
+                    onTokenChanged = viewModel::onTokenChanged,
                     onOpenRecord = { selectedRecord = it },
                 )
             } else {
@@ -214,6 +216,7 @@ private fun ScanBottomSheet(
     uiState: ScanUiState,
     onRetry: () -> Unit,
     onUpload: () -> Unit,
+    onTokenChanged: (String) -> Unit,
     onOpenRecord: (ReceiptCaptureRecord) -> Unit,
 ) {
     LazyColumn(
@@ -227,6 +230,24 @@ private fun ScanBottomSheet(
         item {
             AnalysisPanel(uiState = uiState)
         }
+        
+        if (uiState.stage is ScanStage.Passed) {
+            item {
+                OutlinedTextField(
+                    value = uiState.correlationToken,
+                    onValueChange = onTokenChanged,
+                    label = { Text("Token de Correlación") },
+                    placeholder = { Text("Ej: 852437") },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(12.dp),
+                    singleLine = true,
+                    supportingText = {
+                        Text("Requerido para habilitar el envío")
+                    }
+                )
+            }
+        }
+
         item {
             ScanActions(
                 uiState = uiState,

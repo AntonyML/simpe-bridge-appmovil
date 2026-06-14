@@ -51,6 +51,8 @@ data class ReceiptUploadRequest(
     val deviceId: String,
     val timestamp: Long,
     val appVersion: String,
+    val correlationToken: String = "",
+    val idPos: String = "POS-TIENDA-01"
 )
 
 data class ReceiptUploadResult(

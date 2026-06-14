@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.work.*
 import com.simpe.bridge.appmovil.data.auth.SessionManager
 import com.simpe.bridge.appmovil.data.local.AppDatabase
+import com.simpe.bridge.appmovil.data.local.toDomain
 import com.simpe.bridge.appmovil.data.remote.NetworkResult
 import com.simpe.bridge.appmovil.data.remote.SinpeBridgeHttpManager
 import com.simpe.bridge.appmovil.domain.usecases.MessageStatus
@@ -20,11 +21,12 @@ class SyncWorker(context: Context, params: WorkerParameters) : CoroutineWorker(c
         var allSuccess = true
 
         pending.forEach { message ->
+            // Note: This automatic sync won't have the correlationToken from the UI.
+            // For now, it will use an empty token. 
+            // The manual "Test SMS" flow will handle the token correctly as requested.
             val result = httpClient.postSmsMessage(
-                smsBody = message.body,
-                sender = message.sender,
-                timestamp = message.timestamp,
-                correlationId = message.correlationId
+                message = message.toDomain(),
+                correlationToken = ""
             )
 
             if (result is NetworkResult.Success) {

@@ -53,6 +53,10 @@ class ScanViewModel(
         _uiState.update { it.copy(stage = ScanStage.Error(message)) }
     }
 
+    fun onTokenChanged(token: String) {
+        _uiState.update { it.copy(correlationToken = token) }
+    }
+
     fun processCapture(file: File) {
         viewModelScope.launch {
             try {
@@ -101,6 +105,8 @@ class ScanViewModel(
     fun upload() {
         val optimized = uiState.value.optimizedImage ?: return
         val captureId = uiState.value.captureId
+        val token = uiState.value.correlationToken
+        
         viewModelScope.launch {
             try {
                 _uiState.update { it.copy(stage = ScanStage.Uploading) }
@@ -110,6 +116,7 @@ class ScanViewModel(
                         deviceId = deviceId(),
                         timestamp = System.currentTimeMillis(),
                         appVersion = BuildConfig.VERSION_NAME,
+                        correlationToken = token
                     )
                 )
                 if (captureId != null) {
