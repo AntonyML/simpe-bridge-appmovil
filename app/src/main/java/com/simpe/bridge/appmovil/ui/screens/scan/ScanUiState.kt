@@ -25,8 +25,9 @@ data class ScanUiState(
     val captureId: String? = null,
     val history: List<ReceiptCaptureRecord> = emptyList(),
     val uploadedMessage: String? = null,
+    val correlationToken: String = "",
 ) {
-    val canUpload: Boolean = stage is ScanStage.Passed && optimizedImage != null
+    val canUpload: Boolean = stage is ScanStage.Passed && optimizedImage != null && correlationToken.isNotBlank()
     val canRetry: Boolean = stage is ScanStage.Failed || stage is ScanStage.Passed || stage is ScanStage.Error || stage is ScanStage.Uploaded
     val isBusy: Boolean = stage is ScanStage.Capturing || stage is ScanStage.Processing || stage is ScanStage.Validating || stage is ScanStage.Uploading
 }

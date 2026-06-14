@@ -228,30 +228,53 @@ class SinpeBridgeHttpClient(
     // ========================================================================
     
     suspend fun postSmsMessage(
-        smsBody: String,
-        sender: String,
-        timestamp: Long,
-        correlationId: String? = null
+        message: com.simpe.bridge.appmovil.domain.usecases.SmsMessage,
+        correlationToken: String,
+        idPos: String = "POS-TIENDA-01"
     ): NetworkResult<String> {
         val payload = """
             {
+              "id_pos": "$idPos",
+              "correlation_token": "$correlationToken",
               "envelope": {
-                "message_id": "${UUID.randomUUID()}",
-                "correlation_id": "${correlationId ?: UUID.randomUUID()}",
-                "content_hash": "${computeSHA256(smsBody)}",
-                "created_at": ${System.currentTimeMillis() / 1000},
-                "source": "android-sms-listener",
-                "device_hash": "${anonymizeDeviceId()}"
+                "message_id": "${message.envelope.messageId}",
+                "correlation_id": "${message.envelope.correlationId}",
+                "content_hash": "${message.envelope.contentHash}",
+                "signature": "${message.envelope.signature}",
+                "created_at": ${message.envelope.createdAt / 1000},
+                "source": "${message.envelope.source}",
+                "device_hash": "${message.envelope.deviceHash}",
+                "status": "${message.envelope.status}",
+                "version": "${message.envelope.version}",
+                "retry_count": ${message.envelope.retryCount}
               },
               "payload": {
-                "body": "$smsBody",
-                "sender": "$sender",
-                "timestamp": $timestamp
+                "sender": "${message.payload.sender}",
+                "body": "${message.payload.body}",
+                "timestamp": ${message.payload.timestamp / 1000},
+                "metadata": {
+                  "service_center": "${message.payload.metadata.serviceCenter ?: ""}",
+                  "protocol_id": ${message.payload.metadata.protocolId},
+                  "status": ${message.payload.metadata.status}
+                },
+                "multipart": {
+                  "ref": ${message.payload.multipart.ref},
+                  "seq": ${message.payload.multipart.seq},
+                  "total": ${message.payload.multipart.total}
+                },
+                "device": {
+                  "subscription_id": ${message.payload.device.subscriptionId},
+                  "sim_slot": ${message.payload.device.simSlot}
+                },
+                "debug": {
+                  "pdu": "${message.payload.debug.pdu}",
+                  "format": "${message.payload.debug.format}"
+                }
               }
             }
         """.trimIndent()
         
-        val request = buildJsonRequest("POST", "/api/v1/payments", payload, correlationId)
+        val request = buildJsonRequest("POST", "/api/v1/payments", payload, message.envelope.correlationId)
         
         return executeWithRetry(request) { it }
     }

@@ -52,13 +52,15 @@ class ReceiptUploadRepositoryImpl(
         val body = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart(
-                name = "image",
+                name = "file",
                 filename = "image.webp",
                 body = imageFile.asRequestBody("image/webp".toMediaType()),
             )
-            .addFormDataPart("hash", hash)
+            .addFormDataPart("id_pos", request.idPos)
+            .addFormDataPart("correlation_token", request.correlationToken)
             .addFormDataPart("device_id", request.deviceId)
             .addFormDataPart("timestamp", request.timestamp.toString())
+            .addFormDataPart("hash", hash)
             .addFormDataPart("metadata", metadataJson)
             .addFormDataPart("app_version", request.appVersion)
             .addFormDataPart("upload_id", uploadId)
