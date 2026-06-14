@@ -65,7 +65,7 @@ sealed class NetworkResult<T> {
 
 class SinpeBridgeHttpClient(
     private val context: Context,
-    private val baseUrl: String = "https://api.tonyml.com",
+    private val baseUrl: String = "https://sinpe-bridge-api.fly.dev",
     private val apiKey: String,
     private val deviceId: String,
     private val hmacSecret: String = apiKey,
@@ -251,7 +251,7 @@ class SinpeBridgeHttpClient(
             }
         """.trimIndent()
         
-        val request = buildJsonRequest("POST", "/api/payments", payload, correlationId)
+        val request = buildJsonRequest("POST", "/api/v1/payments", payload, correlationId)
         
         return executeWithRetry(request) { it }
     }
@@ -279,7 +279,7 @@ class SinpeBridgeHttpClient(
             .build()
         
         val request = Request.Builder()
-            .url("$baseUrl/api/uploads/receipts")
+            .url("$baseUrl/api/v1/uploads/receipts")
             .post(requestBody)
             .header("x-api-key", apiKey)
             .header("x-correlation-id", correlationId ?: envelope.correlation_id)
@@ -287,7 +287,7 @@ class SinpeBridgeHttpClient(
             .header("User-Agent", "SinpeBridgeApp/1.0 Android")
             .build()
         
-        logRequest("POST /api/uploads/receipts", "multipart/form-data")
+        logRequest("POST /api/v1/uploads/receipts", "multipart/form-data")
         
         return executeWithRetry(request) { it }
     }

@@ -49,10 +49,10 @@ class ReceiptQualityAnalyzer {
             target = 62.0,
             detail = "Desviacion ${contrastValue.format(1)}",
         )
-        val textVisibility = ((textDensity * 0.72) + (edgeDensity * 0.28)).coerceIn(0.0, 1.0).toPercentMetric(
+        val textVisibility = ((textDensity * 1.5 * 0.72) + (edgeDensity * 0.28)).coerceIn(0.0, 1.0).toPercentMetric(
             key = "textVisibility",
             label = "Texto visible",
-            passAt = 68,
+            passAt = 35,
             detail = "Densidad textual ${(textDensity * 100).format(0)}%",
         )
         val framing = frame.coverageScore.toPercentMetric(
@@ -64,7 +64,7 @@ class ReceiptQualityAnalyzer {
         val perspective = frame.perspectiveScore.toPercentMetric(
             key = "perspective",
             label = "Perspectiva estable",
-            passAt = 65,
+            passAt = 45,
             detail = "Inclinacion ${(100 - frame.perspectiveScore * 100).format(0)}%",
         )
         val resolution = resolutionMetric(bitmap.width, bitmap.height)
@@ -142,7 +142,7 @@ class ReceiptQualityAnalyzer {
                 val i = y * width + x
                 val gx = abs(this[i + 1] - this[i - 1])
                 val gy = abs(this[i + width] - this[i - width])
-                if (gx + gy > 44) edges++
+                if (gx + gy > 30) edges++
                 count++
                 x += 2
             }
@@ -160,19 +160,19 @@ class ReceiptQualityAnalyzer {
             var x = 0
             while (x < width - block) {
                 var transitions = 0
-                var last = this[y * width + x] > 145
+                var last = this[y * width + x] > 128
                 var row = 0
                 while (row < block) {
                     var col = 1
                     while (col < block) {
-                        val current = this[(y + row) * width + x + col] > 145
+                        val current = this[(y + row) * width + x + col] > 128
                         if (current != last) transitions++
                         last = current
                         col += 2
                     }
                     row += 4
                 }
-                if (transitions in 5..44) textBlocks++
+                if (transitions in 2..65) textBlocks++
                 totalBlocks++
                 x += block
             }
@@ -214,7 +214,8 @@ class ReceiptQualityAnalyzer {
             (marginBalanceX.coerceIn(0.0, 1.0) * 0.14) +
             (marginBalanceY.coerceIn(0.0, 1.0) * 0.14)
         val aspect = boxWidth.toDouble() / boxHeight
-        val perspective = (1.0 - abs(aspect - 0.62) / 0.62).coerceIn(0.0, 1.0)
+        // Proporción más flexible (acepta desde tickets largos hasta capturas más cuadradas)
+        val perspective = (1.0 - abs(aspect - 0.65) / 1.2).coerceIn(0.0, 1.0)
         return FrameScore(coverage.coerceIn(0.0, 1.0), perspective)
     }
 

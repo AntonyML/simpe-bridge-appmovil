@@ -1,0 +1,434 @@
+[
+  {
+    "column_name": "id",
+    "data_type": "uuid",
+    "is_nullable": "NO",
+    "column_default": "gen_random_uuid()",
+    "constraint_type": "PRIMARY KEY",
+    "referenced_table": "sinpe_image_receipts",
+    "referenced_column": "id"
+  },
+  {
+    "column_name": "correlation_session_id",
+    "data_type": "uuid",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "FOREIGN KEY",
+    "referenced_table": "correlation_sessions",
+    "referenced_column": "id"
+  },
+  {
+    "column_name": "id_pos",
+    "data_type": "character varying",
+    "is_nullable": "NO",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "image_url",
+    "data_type": "text",
+    "is_nullable": "NO",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "image_storage_path",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "image_hash",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "mime_type",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "image_size_bytes",
+    "data_type": "bigint",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "uploaded_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "NO",
+    "column_default": "now()",
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "device_id",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "device_brand",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "device_model",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "os_name",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "os_version",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "app_version",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "camera_resolution",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "latitude",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "longitude",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "ip_address",
+    "data_type": "inet",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "captured_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "device_metadata",
+    "data_type": "jsonb",
+    "is_nullable": "NO",
+    "column_default": "'{}'::jsonb",
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "ocr_provider",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "ocr_model",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "ocr_confidence",
+    "data_type": "double precision",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "ocr_processing_ms",
+    "data_type": "integer",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "ocr_status",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": "'pending'::character varying",
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "raw_ocr_text",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "ocr_metadata",
+    "data_type": "jsonb",
+    "is_nullable": "NO",
+    "column_default": "'{}'::jsonb",
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "bank_name",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "transaction_type",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "document_number",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "reference_number",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "source_account",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "destination_name",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "destination_phone",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "payer_name",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "transferred_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "commission_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "currency",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "transaction_reason",
+    "data_type": "text",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "transaction_date",
+    "data_type": "date",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "transaction_time",
+    "data_type": "time without time zone",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "transaction_timestamp",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "extracted_token",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "extracted_phone",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "extracted_reference",
+    "data_type": "character varying",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "extracted_amount",
+    "data_type": "numeric",
+    "is_nullable": "YES",
+    "column_default": null,
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  },
+  {
+    "column_name": "created_at",
+    "data_type": "timestamp with time zone",
+    "is_nullable": "NO",
+    "column_default": "now()",
+    "constraint_type": "",
+    "referenced_table": null,
+    "referenced_column": null
+  }
+]

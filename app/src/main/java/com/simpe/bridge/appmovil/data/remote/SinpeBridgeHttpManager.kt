@@ -17,7 +17,7 @@ import java.util.UUID
  * Configuration for SINPE Bridge HTTP client
  */
 data class HttpClientConfig(
-    val baseUrl: String = "https://api.tonyml.com",
+    val baseUrl: String = "https://sinpe-bridge-api.fly.dev",
     val apiKey: String,
     val hmacSecret: String? = null,  // If null, uses apiKey
     val timeoutSeconds: Long = 30,
