@@ -42,7 +42,7 @@ android {
     buildTypes {
         release {
             isMinifyEnabled = false
-            buildConfigField("String", "RECEIPT_UPLOAD_URL", "\"https://sinpe-bridge-api.fly.dev/api/v1/uploads/receipts\"")
+            buildConfigField("String", "RECEIPT_UPLOAD_URL", "\"https://sinpe-bridge-api.fly.dev/api/v1/uploads/receipts/analyze\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
@@ -51,7 +51,7 @@ android {
         debug {
             // Ensure debug builds also get unique versions for local testing
             versionNameSuffix = "-debug"
-            buildConfigField("String", "RECEIPT_UPLOAD_URL", "\"https://sinpe-bridge-api.fly.dev/api/v1/uploads/receipts\"")
+            buildConfigField("String", "RECEIPT_UPLOAD_URL", "\"https://sinpe-bridge-api.fly.dev/api/v1/uploads/receipts/analyze\"")
         }
     }
 
