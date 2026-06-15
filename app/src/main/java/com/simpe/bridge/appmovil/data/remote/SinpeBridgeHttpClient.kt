@@ -302,7 +302,7 @@ class SinpeBridgeHttpClient(
             .build()
         
         val request = Request.Builder()
-            .url("$baseUrl/api/v1/uploads/receipts")
+            .url("$baseUrl/api/v1/uploads/receipts/analyze")
             .post(requestBody)
             .header("x-api-key", apiKey)
             .header("x-correlation-id", correlationId ?: envelope.correlation_id)
@@ -310,7 +310,7 @@ class SinpeBridgeHttpClient(
             .header("User-Agent", "SinpeBridgeApp/1.0 Android")
             .build()
         
-        logRequest("POST /api/v1/uploads/receipts", "multipart/form-data")
+        logRequest("POST /api/v1/uploads/receipts/analyze", "multipart/form-data")
         
         return executeWithRetry(request) { it }
     }
