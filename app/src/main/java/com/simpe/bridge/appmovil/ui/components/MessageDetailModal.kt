@@ -55,7 +55,8 @@ fun MessageDetailModal(
         onDismissRequest = onDismiss,
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
         shape = RoundedCornerShape(topStart = 28.dp, topEnd = 28.dp),
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
     ) {
         Column(
             modifier = Modifier
@@ -90,12 +91,12 @@ fun MessageDetailModal(
 
             // Message bubble
             Surface(
-                shape = RoundedCornerShape(16.dp),
-                color = MaterialTheme.colorScheme.primaryContainer
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Text(
                     text = message.payload.body,
-                    modifier = Modifier.padding(14.dp),
+                    modifier = Modifier.padding(20.dp),
                     style = MaterialTheme.typography.bodyLarge
                 )
             }
@@ -126,8 +127,8 @@ fun MessageDetailModal(
 
             // Technical details (nivel medio)
             Surface(
-                shape = RoundedCornerShape(12.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                shape = RoundedCornerShape(14.dp),
+                color = MaterialTheme.colorScheme.surfaceVariant
             ) {
                 Column(modifier = Modifier.padding(12.dp)) {
 
@@ -179,7 +180,7 @@ fun MessageDetailModal(
                         )
 
                         Surface(
-                            shape = RoundedCornerShape(12.dp),
+                            shape = RoundedCornerShape(14.dp),
                             color = MaterialTheme.colorScheme.surfaceVariant
                         ) {
                             Text(

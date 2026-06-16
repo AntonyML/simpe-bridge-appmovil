@@ -228,9 +228,10 @@ fun LoginScreen(context: Context, onLoginSuccess: () -> Unit) {
                         alpha        = cardAlpha
                         translationY = with(density) { cardOffsetY.dp.toPx() }
                     },
-                shape            = RoundedCornerShape(24.dp),
-                tonalElevation   = 4.dp,
-                shadowElevation  = 2.dp
+                shape            = RoundedCornerShape(14.dp),
+                tonalElevation   = 0.dp,
+                shadowElevation  = 0.dp,
+                color            = MaterialTheme.colorScheme.surface
             ) {
                 Column(
                     modifier = Modifier
@@ -345,7 +346,7 @@ private fun LoginTextField(
         ),
         keyboardActions = KeyboardActions(onAny = { onImeAction() }),
         singleLine      = true,
-        shape           = RoundedCornerShape(14.dp),
+        shape           = RoundedCornerShape(4.dp),
         modifier        = modifier,
         colors          = OutlinedTextFieldDefaults.colors(
             focusedBorderColor    = MaterialTheme.colorScheme.primary,
@@ -414,7 +415,7 @@ private fun PasswordField(
         ),
         keyboardActions = KeyboardActions(onDone = { onImeAction() }),
         singleLine      = true,
-        shape           = RoundedCornerShape(14.dp),
+        shape           = RoundedCornerShape(4.dp),
         modifier        = modifier,
         colors          = OutlinedTextFieldDefaults.colors(
             focusedBorderColor    = MaterialTheme.colorScheme.primary,

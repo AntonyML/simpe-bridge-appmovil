@@ -1,9 +1,12 @@
 package com.simpe.bridge.appmovil.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BugReport
@@ -20,9 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.simpe.bridge.appmovil.ui.theme.CloudWhite
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -31,20 +34,19 @@ fun AppTopBar(
     onTestSmsClick: () -> Unit,
 ) {
     TopAppBar(
+        modifier = Modifier.height(56.dp),
         title = {
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
                 Text(
                     text = "SIMPE Bridge",
                     style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
                 )
-                Box(
-                    modifier = Modifier
-                        .padding(start = 12.dp)
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(MaterialTheme.colorScheme.secondaryContainer)
-                        .padding(horizontal = 8.dp, vertical = 2.dp)
-                )
+                StatusChip(label = "Solo Android")
             }
         },
         actions = {
@@ -66,8 +68,26 @@ fun AppTopBar(
             }
         },
         colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface,
+            containerColor = CloudWhite,
             titleContentColor = MaterialTheme.colorScheme.onSurface,
+            actionIconContentColor = MaterialTheme.colorScheme.onSurface,
         )
     )
+}
+
+@Composable
+private fun StatusChip(label: String) {
+    Box(
+        modifier = Modifier
+            .clip(RoundedCornerShape(4.dp))
+            .background(MaterialTheme.colorScheme.secondaryContainer)
+            .padding(horizontal = 8.dp, vertical = 3.dp)
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            fontWeight = FontWeight.SemiBold,
+            color = MaterialTheme.colorScheme.onSecondaryContainer
+        )
+    }
 }

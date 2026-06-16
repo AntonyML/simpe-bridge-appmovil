@@ -239,7 +239,7 @@ private fun ScanBottomSheet(
                     label = { Text("Token de Correlación") },
                     placeholder = { Text("Ej: 852437") },
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(12.dp),
+                    shape = RoundedCornerShape(4.dp),
                     singleLine = true,
                     supportingText = {
                         Text("Requerido para habilitar el envío")
@@ -264,11 +264,32 @@ private fun ScanBottomSheet(
         }
         if (uiState.history.isEmpty()) {
             item {
-                Text(
-                    text = "Sin comprobantes capturados.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 12.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Rounded.PhotoCamera,
+                        contentDescription = null,
+                        modifier = Modifier.size(36.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
+                    )
+                    Text(
+                        text = "Sin comprobantes",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Los comprobantes que captures aparecerán aquí.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                }
             }
         } else {
             items(
@@ -433,8 +454,8 @@ private fun AnalysisPanel(uiState: ScanUiState) {
     val report = uiState.qualityReport
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        shape = RoundedCornerShape(20.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        shape = RoundedCornerShape(14.dp),
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
@@ -613,10 +634,11 @@ private fun ReceiptHistoryItem(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(18.dp))
+            .clip(RoundedCornerShape(14.dp))
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f)),
+        shape = RoundedCornerShape(14.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Row(
             modifier = Modifier.padding(14.dp),
@@ -794,8 +816,8 @@ private fun ReceiptViewerMetadata(
     Surface(
         modifier = modifier.fillMaxWidth(),
         color = MaterialTheme.colorScheme.surface.copy(alpha = 0.94f),
-        shape = RoundedCornerShape(24.dp),
-        tonalElevation = 6.dp,
+        shape = RoundedCornerShape(14.dp),
+        tonalElevation = 0.dp,
     ) {
         Column(
             modifier = Modifier.padding(18.dp),
@@ -903,8 +925,9 @@ private fun ReceiptAsyncImage(
 private fun CameraPermissionPanel(onRequest: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     ) {
         Column(
             modifier = Modifier.padding(24.dp),

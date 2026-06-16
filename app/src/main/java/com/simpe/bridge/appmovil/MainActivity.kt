@@ -266,8 +266,10 @@ fun TestSmsDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
-            shape = RoundedCornerShape(24.dp),
-            tonalElevation = 4.dp,
+            shape = RoundedCornerShape(14.dp),
+            tonalElevation = 0.dp,
+            shadowElevation = 0.dp,
+            color = MaterialTheme.colorScheme.surface,
             modifier = Modifier.padding(16.dp)
         ) {
             Column(
@@ -280,13 +282,14 @@ fun TestSmsDialog(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                
+
                 OutlinedTextField(
                     value = idPos,
                     onValueChange = { idPos = it },
                     label = { Text("ID POS") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    shape = RoundedCornerShape(4.dp)
                 )
 
                 OutlinedTextField(
@@ -295,7 +298,8 @@ fun TestSmsDialog(
                     label = { Text("Token de Correlación") },
                     placeholder = { Text("Ej: 852437") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
+                    shape = RoundedCornerShape(4.dp)
                 )
 
                 Row(

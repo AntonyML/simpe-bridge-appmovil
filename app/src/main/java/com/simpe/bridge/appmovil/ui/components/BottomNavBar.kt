@@ -7,10 +7,14 @@ import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.simpe.bridge.appmovil.ui.theme.ActionBlue
+import com.simpe.bridge.appmovil.ui.theme.CharcoalText
+import com.simpe.bridge.appmovil.ui.theme.CloudWhite
 
 sealed class Screen(val route: String, val label: String, val icon: ImageVector) {
     object Login : Screen("login", "", Icons.Rounded.Message) // Dummy icon/label for Login
@@ -30,27 +34,35 @@ fun BottomNavBar(
         Screen.Settings
     )
 
-    NavigationBar {
+    NavigationBar(
+        containerColor = CloudWhite,
+        tonalElevation = 0.dp,
+    ) {
         items.forEach { screen ->
             val isSelected = currentRoute == screen.route
-            
+            val isDisabled = screen is Screen.QR
+
             NavigationBarItem(
-                icon = { 
+                icon = {
                     Icon(
-                        imageVector = screen.icon, 
-                        contentDescription = screen.label,
-                        tint = if (isSelected) androidx.compose.material3.LocalContentColor.current else androidx.compose.material3.LocalContentColor.current.copy(alpha = 0.6f)
-                    ) 
+                        imageVector = screen.icon,
+                        contentDescription = screen.label
+                    )
                 },
-                label = { 
-                    Text(
-                        text = screen.label,
-                        color = Color.Unspecified
-                    ) 
-                },
+                label = { Text(text = screen.label) },
                 selected = isSelected,
-                onClick = { onNavigate(screen.route) },
-                enabled = true
+                onClick = if (isDisabled) ({}) else ({ onNavigate(screen.route) }),
+                enabled = !isDisabled,
+                alwaysShowLabel = true,
+                colors = NavigationBarItemDefaults.colors(
+                    selectedIconColor = CloudWhite,
+                    selectedTextColor = ActionBlue,
+                    unselectedIconColor = CharcoalText,
+                    unselectedTextColor = CharcoalText,
+                    indicatorColor = ActionBlue,
+                    disabledIconColor = CharcoalText.copy(alpha = 0.38f),
+                    disabledTextColor = CharcoalText.copy(alpha = 0.38f),
+                )
             )
         }
     }

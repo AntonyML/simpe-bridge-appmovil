@@ -18,6 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.simpe.bridge.appmovil.domain.utils.SettingsManager
+import com.simpe.bridge.appmovil.ui.theme.HazeGrey
 
 @Composable
 fun SettingsScreen(
@@ -31,7 +32,7 @@ fun SettingsScreen(
 ) {
     val context = LocalContext.current
     val settingsManager = remember { SettingsManager(context) }
-    
+
     var showSendersDialog by remember { mutableStateOf(false) }
     var senders by remember { mutableStateOf(settingsManager.getSinpeSenders()) }
 
@@ -39,13 +40,14 @@ fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(20.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+            .padding(horizontal = 16.dp, vertical = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(48.dp)
     ) {
         Text(
             text = "Configuración",
             style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
         )
 
         // General Section
@@ -100,16 +102,12 @@ fun SettingsScreen(
         }
 
         // Logout Section
-        Button(
+        OutlinedButton(
             onClick = onLogout,
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = 16.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.errorContainer,
-                contentColor = MaterialTheme.colorScheme.onErrorContainer
-            ),
-            shape = RoundedCornerShape(20.dp)
+                .padding(top = 8.dp),
+            shape = RoundedCornerShape(14.dp)
         ) {
             Icon(Icons.Rounded.Logout, contentDescription = null)
             Spacer(Modifier.width(8.dp))
@@ -146,7 +144,7 @@ fun SettingsSendersItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -185,7 +183,9 @@ fun SendersDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            shape = RoundedCornerShape(20.dp)
+            shape = RoundedCornerShape(14.dp),
+            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp),
@@ -196,7 +196,7 @@ fun SendersDialog(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-                
+
                 Text(
                     text = "Números o palabras clave que identifican mensajes SINPE.",
                     style = MaterialTheme.typography.bodySmall,
@@ -239,7 +239,8 @@ fun SendersDialog(
                         onValueChange = { newSender = it },
                         label = { Text("Nuevo remitente") },
                         modifier = Modifier.fillMaxWidth(),
-                        singleLine = true
+                        singleLine = true,
+                        shape = RoundedCornerShape(4.dp)
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -306,11 +307,12 @@ fun SettingsSection(
             fontWeight = FontWeight.Bold
         )
         Surface(
-            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
-            shape = RoundedCornerShape(20.dp),
-            border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f))
+            color = HazeGrey,
+            shape = RoundedCornerShape(14.dp),
+            tonalElevation = 0.dp,
+            shadowElevation = 0.dp
         ) {
-            Column(modifier = Modifier.padding(vertical = 8.dp)) {
+            Column {
                 content()
             }
         }
@@ -328,7 +330,7 @@ fun SettingsToggleItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
@@ -356,21 +358,21 @@ fun SettingsPermissionItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (isGranted) androidx.compose.ui.graphics.Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+            tint = if (isGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
         )
         Column(modifier = Modifier.weight(1f)) {
             Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
             Text(
-                text = status, 
-                style = MaterialTheme.typography.bodySmall, 
-                color = if (isGranted) androidx.compose.ui.graphics.Color(0xFF4CAF50) else MaterialTheme.colorScheme.error
+                text = status,
+                style = MaterialTheme.typography.bodySmall,
+                color = if (isGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
             )
         }
         if (!isGranted) {
@@ -390,7 +392,7 @@ fun SettingsInfoItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .padding(20.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {

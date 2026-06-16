@@ -18,6 +18,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.simpe.bridge.appmovil.domain.usecases.MessageStatus
 import com.simpe.bridge.appmovil.domain.usecases.SmsMessage
+import com.simpe.bridge.appmovil.ui.theme.HazeGrey
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -34,16 +35,15 @@ fun MessageItem(
         modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(14.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
+            containerColor = HazeGrey
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

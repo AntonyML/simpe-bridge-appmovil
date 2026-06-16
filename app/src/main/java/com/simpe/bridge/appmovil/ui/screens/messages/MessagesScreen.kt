@@ -13,9 +13,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.simpe.bridge.appmovil.domain.usecases.SmsMessage
-import com.simpe.bridge.appmovil.ui.components.DashboardCards
+import com.simpe.bridge.appmovil.ui.components.AirScreenPadding
+import com.simpe.bridge.appmovil.ui.components.AirSectionSpacing
 import com.simpe.bridge.appmovil.ui.components.MessageDetailModal
 import com.simpe.bridge.appmovil.ui.components.MessageItem
+import com.simpe.bridge.appmovil.ui.components.SectionTitle
+import com.simpe.bridge.appmovil.ui.components.SummarySection
+import com.simpe.bridge.appmovil.ui.components.SystemStatusSection
+import com.simpe.bridge.appmovil.ui.components.UsageDistributionSection
 
 @Composable
 fun MessagesScreen(
@@ -25,38 +30,40 @@ fun MessagesScreen(
 ) {
     var selectedMessage by remember { mutableStateOf<SmsMessage?>(null) }
 
-    Column(
+    LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = AirScreenPadding),
+        contentPadding = PaddingValues(top = 20.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Dashboard section
-        DashboardCards(
-            totalSms = messages.size,
-            modifier = Modifier.padding(vertical = 20.dp)
-        )
-
-        Text(
-            text = "Mensajes Recientes",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            modifier = Modifier.padding(bottom = 12.dp)
-        )
-
+        item {
+            DashboardHeader(totalSms = messages.size)
+        }
+        item {
+            SummarySection(totalSms = messages.size)
+        }
+        item {
+            SystemStatusSection()
+        }
+        item {
+            UsageDistributionSection(totalSms = messages.size)
+        }
+        item {
+            Spacer(Modifier.height(8.dp))
+            SectionTitle(
+                title = "Actividad reciente",
+                subtitle = if (messages.isEmpty()) "Sin mensajes" else "${messages.size} mensajes"
+            )
+        }
         if (messages.isEmpty()) {
-            EmptyMessagesState()
+            item { EmptyMessagesState() }
         } else {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(bottom = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                items(items = messages, key = { it.envelope.messageId }) { message ->
-                    MessageItem(
-                        message = message,
-                        onClick = { selectedMessage = message }
-                    )
-                }
+            items(items = messages, key = { it.envelope.messageId }) { message ->
+                MessageItem(
+                    message = message,
+                    onClick = { selectedMessage = message }
+                )
             }
         }
     }
@@ -72,9 +79,28 @@ fun MessagesScreen(
 }
 
 @Composable
+private fun DashboardHeader(totalSms: Int) {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text(
+            text = "Panel",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        Text(
+            text = "Actividad del bridge y mensajes capturados",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
+}
+
+@Composable
 fun EmptyMessagesState() {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 24.dp),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -84,7 +110,7 @@ fun EmptyMessagesState() {
             Icon(
                 imageVector = Icons.Rounded.Sms,
                 contentDescription = null,
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier.size(56.dp),
                 tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
             )
             Text(
