@@ -15,7 +15,7 @@ data class ReceiptQualityReport(
     val passed: Boolean = score >= PASS_THRESHOLD
 
     companion object {
-        const val PASS_THRESHOLD = 75
+        const val PASS_THRESHOLD = 60
     }
 }
 

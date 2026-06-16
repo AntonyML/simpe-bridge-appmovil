@@ -75,14 +75,14 @@ class ReceiptLikelihoodEstimator {
             )
         )
 
-        val screenshotPenalty = semantic.screenshotSignals.size * 6
+        val screenshotPenalty = semantic.screenshotSignals.size * 3
         signals.add(
             ReceiptLikelihoodSignal(
                 key = "anti_screenshot",
                 label = "Anti captura",
                 weight = 12,
                 contribution = 12 - screenshotPenalty.coerceAtMost(12),
-                passed = screenshotPenalty == 0,
+                passed = screenshotPenalty < 9,
                 detail = if (screenshotPenalty == 0) "Sin senales UI" else "${semantic.screenshotSignals.size} senales",
             )
         )
@@ -91,7 +91,7 @@ class ReceiptLikelihoodEstimator {
         val score = total.coerceIn(0, 100)
         val passed = score >= ReceiptLikelihoodReport.PASS_THRESHOLD &&
             semantic.keywordHits.isNotEmpty() &&
-            semantic.screenshotSignals.size < 3
+            semantic.screenshotSignals.size < 6
 
         return ReceiptLikelihoodReport(
             score = score,

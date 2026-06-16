@@ -157,10 +157,10 @@ class ReceiptOcrEngine {
         for (entry in SCREENSHOT_TOKENS) {
             if (text.contains(entry)) signals.add(entry)
         }
-        if (extraction.blockCount >= 12 && extraction.lineCount >= 28) {
+        if (extraction.blockCount >= 30 && extraction.lineCount >= 90) {
             signals.add("ui:bloques_densos")
         }
-        if (extraction.lineCount >= 35) {
+        if (extraction.lineCount >= 120) {
             signals.add("ui:lineas_densas")
         }
         return signals
@@ -168,7 +168,7 @@ class ReceiptOcrEngine {
 
     private fun antiScreenshotScore(signals: List<String>, densityScore: Double): Double {
         if (signals.isEmpty()) return densityScore.coerceIn(0.0, 100.0)
-        val penalty = signals.size * 22.0
+        val penalty = signals.size * 8.0
         return (densityScore - penalty).coerceIn(0.0, 100.0)
     }
 
@@ -270,15 +270,10 @@ class ReceiptOcrEngine {
             "twitter",
             "youtube",
             "snapchat",
-            "mensaje",
             "conversacion",
-            "notificacion",
             "reproductor",
             "captura de pantalla",
-            "bateria",
-            "wifi",
             "esquema",
-            "menu principal",
         )
     }
 }

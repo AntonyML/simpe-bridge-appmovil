@@ -12,13 +12,18 @@ class ReceiptFinalAggregator {
         semantic: ReceiptSemanticReport,
         likelihood: ReceiptLikelihoodReport,
     ): ReceiptFinalReport {
-        val weighted = visual.score * 0.30 +
-            semantic.score * 0.40 +
-            likelihood.score * 0.30
+        val weighted = visual.score * 0.18 +
+            semantic.score * 0.50 +
+            likelihood.score * 0.32
         val finalScore = weighted.toInt().coerceIn(0, 100)
 
+        val strongContent = semantic.passed &&
+            semantic.keywordHits.isNotEmpty() &&
+            semantic.score >= 65 &&
+            likelihood.passed
+
         val reasons = mutableListOf<String>()
-        if (!visual.passed) {
+        if (!visual.passed && !strongContent) {
             reasons.add("Calidad visual insuficiente (${visual.score})")
         }
         if (!semantic.passed) {
@@ -27,16 +32,16 @@ class ReceiptFinalAggregator {
         if (!likelihood.passed) {
             reasons += likelihoodReasons(likelihood)
         }
-        if (semantic.screenshotSignals.isNotEmpty()) {
+        if (semantic.screenshotSignals.isNotEmpty() && !strongContent) {
             reasons += "Captura con senales de UI o aplicacion"
         }
         if (semantic.keywordHits.isEmpty()) {
             reasons += "Sin palabras clave reconocibles de SINPE"
         }
-        if (visual.framing.passed.not()) {
+        if (visual.framing.passed.not() && !strongContent) {
             reasons += "Encuadre incompleto del comprobante"
         }
-        if (visual.resolution.passed.not()) {
+        if (visual.resolution.passed.not() && !strongContent) {
             reasons += "Resolucion insuficiente para lectura"
         }
 
@@ -58,9 +63,6 @@ class ReceiptFinalAggregator {
         if (semantic.characterCount < 24) list += "Muy poco texto detectado (${semantic.characterCount} caracteres)"
         if (semantic.lineCount < 2) list += "Pocas lineas detectadas (${semantic.lineCount})"
         if (semantic.keywordHits.isEmpty()) list += "Sin coincidencias de palabras SINPE"
-        if (semantic.screenshotSignals.isNotEmpty()) {
-            list += "Patrones de UI detectados"
-        }
         if (list.isEmpty()) list += "Texto no parece un comprobante SINPE (${semantic.score})"
         return list
     }

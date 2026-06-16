@@ -30,8 +30,8 @@ class ReceiptQualityAnalyzer {
         val blur = laplacianVariance.toMetric(
             key = "blur",
             label = "Imagen enfocada",
-            low = 50.0,
-            target = 240.0,
+            low = 30.0,
+            target = 160.0,
             detail = "Varianza Laplaciana ${laplacianVariance.format(1)}",
         )
         val brightness = centeredMetric(
@@ -47,39 +47,41 @@ class ReceiptQualityAnalyzer {
         val contrast = contrastValue.toMetric(
             key = "contrast",
             label = "Contraste suficiente",
-            low = 26.0,
-            target = 60.0,
+            low = 18.0,
+            target = 48.0,
             detail = "Desviacion ${contrastValue.format(1)}",
         )
         val textVisibility = ((textDensity * 1.4 * 0.7) + (edgeDensity * 0.3)).coerceIn(0.0, 1.0).toPercentMetric(
             key = "textVisibility",
             label = "Texto visible",
-            passAt = 30,
+            passAt = 25,
             detail = "Densidad textual ${(textDensity * 100).format(0)}%",
         )
         val framing = frame.coverageScore.toPercentMetric(
             key = "framing",
             label = "Comprobante completo",
-            passAt = 65,
+            passAt = 55,
             detail = "Cobertura ${(frame.coverageScore * 100).format(0)}%",
         )
         val perspective = frame.perspectiveScore.toPercentMetric(
             key = "perspective",
             label = "Perspectiva estable",
-            passAt = 40,
+            passAt = 30,
             detail = "Inclinacion ${(100 - frame.perspectiveScore * 100).format(0)}%",
         )
         val resolution = resolutionMetric(bitmap.width, bitmap.height)
 
-        val weighted = blur.score * 0.30 +
+        val weighted = blur.score * 0.18 +
             brightness.score * 0.12 +
-            contrast.score * 0.13 +
-            textVisibility.score * 0.20 +
-            framing.score * 0.15
+            contrast.score * 0.14 +
+            textVisibility.score * 0.24 +
+            framing.score * 0.16 +
+            perspective.score * 0.10 +
+            resolution.score * 0.06
 
         val emptyFramePenalty = if (whiteRatio > 0.97 || blackRatio > 0.92) 12 else 0
-        val perspectivePenalty = if (!perspective.passed) 5 else 0
-        val resolutionPenalty = if (!resolution.passed) 5 else 0
+        val perspectivePenalty = if (!perspective.passed) 3 else 0
+        val resolutionPenalty = if (!resolution.passed) 3 else 0
         val penalties = emptyFramePenalty + perspectivePenalty + resolutionPenalty
         val score = (weighted.toInt() - penalties).coerceIn(0, 100)
 
@@ -237,7 +239,7 @@ class ReceiptQualityAnalyzer {
 
     private fun Double.toMetric(key: String, label: String, low: Double, target: Double, detail: String): QualityMetric {
         val score = (((this - low) / (target - low)) * 100).toInt().coerceIn(0, 100)
-        return QualityMetric(key, label, score, score >= 70, detail)
+        return QualityMetric(key, label, score, score >= 60, detail)
     }
 
     private fun Double.toPercentMetric(key: String, label: String, passAt: Int, detail: String): QualityMetric {
@@ -261,18 +263,18 @@ class ReceiptQualityAnalyzer {
             value < minGood -> (((value - minAcceptable) / (minGood - minAcceptable)) * 75 + 25).toInt()
             else -> (((maxAcceptable - value) / (maxAcceptable - maxGood)) * 75 + 25).toInt()
         }.coerceIn(0, 100)
-        return QualityMetric(key, label, score, score >= 70, detail)
+        return QualityMetric(key, label, score, score >= 60, detail)
     }
 
     private fun resolutionMetric(width: Int, height: Int): QualityMetric {
         val minSide = min(width, height)
         val longSide = max(width, height)
-        val score = min(100, ((minSide / 900.0) * 55 + (longSide / 1600.0) * 45).toInt())
+        val score = min(100, ((minSide / 720.0) * 55 + (longSide / 1280.0) * 45).toInt())
         return QualityMetric(
             key = "resolution",
             label = "Resolucion util",
             score = score,
-            passed = minSide >= 720 && longSide >= 1200,
+            passed = minSide >= 540 && longSide >= 960,
             detail = "${width}x$height",
         )
     }
