@@ -9,7 +9,9 @@ import com.simpe.bridge.appmovil.data.local.ReceiptCaptureDao
 import com.simpe.bridge.appmovil.data.local.ReceiptCaptureEntity
 import com.simpe.bridge.appmovil.domain.receipt.OptimizedReceiptImage
 import com.simpe.bridge.appmovil.domain.receipt.ReceiptCaptureRecord
+import com.simpe.bridge.appmovil.domain.receipt.ReceiptFinalReport
 import com.simpe.bridge.appmovil.domain.receipt.ReceiptQualityReport
+import com.simpe.bridge.appmovil.domain.receipt.ReceiptSemanticReport
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import java.io.File
@@ -30,11 +32,15 @@ class ReceiptCaptureLocalRepository(
         sourceFile: File,
         report: ReceiptQualityReport,
         optimizedImage: OptimizedReceiptImage?,
+        semanticReport: ReceiptSemanticReport? = null,
+        finalReport: ReceiptFinalReport? = null,
         error: String? = null,
     ): String {
         val captureId = UUID.randomUUID().toString()
         val imagePath = optimizedImage?.imageUri?.path ?: sourceFile.absolutePath
         val thumbnailPath = optimizedImage?.thumbnailUri?.path ?: createHistoryThumbnail(sourceFile, captureId)
+        val reasons = finalReport?.reasons ?: emptyList()
+        val ocrSummary = semanticReport?.let { buildOcrSummary(it) } ?: ""
         dao.upsert(
             ReceiptCaptureEntity(
                 captureId = captureId,
@@ -42,8 +48,8 @@ class ReceiptCaptureLocalRepository(
                 imagePath = imagePath,
                 thumbnailPath = thumbnailPath,
                 sha256 = optimizedImage?.sha256,
-                score = report.score,
-                passed = report.passed,
+                score = finalReport?.finalScore ?: report.score,
+                passed = finalReport?.passed ?: report.passed,
                 uploaded = false,
                 uploadMessage = null,
                 width = optimizedImage?.width ?: 0,
@@ -52,6 +58,12 @@ class ReceiptCaptureLocalRepository(
                 metadataJson = gson.toJson(optimizedImage?.metadata),
                 checklistJson = gson.toJson(report),
                 error = error,
+                visualScore = report.score,
+                semanticScore = semanticReport?.score ?: 0,
+                likelihoodScore = finalReport?.likelihoodScore ?: 0,
+                finalScore = finalReport?.finalScore ?: report.score,
+                rejectionReasonsJson = gson.toJson(reasons),
+                ocrSummary = ocrSummary,
             )
         )
         return captureId
@@ -63,6 +75,15 @@ class ReceiptCaptureLocalRepository(
 
     suspend fun hasUploadedHash(hash: String): Boolean {
         return dao.hasUploadedHash(hash)
+    }
+
+    private fun buildOcrSummary(report: ReceiptSemanticReport): String {
+        val top = report.keywordHits
+            .sortedByDescending { it.weight * it.occurrences }
+            .take(6)
+            .joinToString(", ") { it.keyword }
+        val text = report.normalizedText.take(220)
+        return if (top.isBlank()) text else "$text | $top"
     }
 
     private fun createHistoryThumbnail(sourceFile: File, captureId: String): String? {
@@ -96,6 +117,10 @@ class ReceiptCaptureLocalRepository(
     }
 
     private fun ReceiptCaptureEntity.toRecord(): ReceiptCaptureRecord {
+        val reasons: List<String> = runCatching {
+            val type = object : com.google.gson.reflect.TypeToken<List<String>>() {}.type
+            gson.fromJson<List<String>>(rejectionReasonsJson, type) ?: emptyList()
+        }.getOrDefault(emptyList())
         return ReceiptCaptureRecord(
             captureId = captureId,
             createdAt = createdAt,
@@ -110,6 +135,12 @@ class ReceiptCaptureLocalRepository(
             height = height,
             sizeBytes = sizeBytes,
             error = error,
+            visualScore = visualScore,
+            semanticScore = semanticScore,
+            likelihoodScore = likelihoodScore,
+            finalScore = finalScore,
+            rejectionReasons = reasons,
+            ocrSummary = ocrSummary,
         )
     }
 }

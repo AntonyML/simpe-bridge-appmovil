@@ -2,6 +2,7 @@ package com.simpe.bridge.appmovil.ui.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Message
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Icon
@@ -21,6 +22,7 @@ sealed class Screen(val route: String, val label: String, val icon: ImageVector)
     object Messages : Screen("messages", "Mensajes", Icons.Rounded.Message)
     object QR : Screen("scan", "Escanear", Icons.Rounded.PhotoCamera)
     object Settings : Screen("settings", "Ajustes", Icons.Rounded.Settings)
+    object Appearance : Screen("appearance", "Apariencia", Icons.Rounded.Palette)
 }
 
 @Composable

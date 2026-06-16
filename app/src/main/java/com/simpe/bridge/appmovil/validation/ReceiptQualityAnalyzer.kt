@@ -22,60 +22,65 @@ class ReceiptQualityAnalyzer {
         val contrastValue = gray.standardDeviation(brightnessValue)
         val textDensity = gray.textLikeDensity(width, height)
         val frame = gray.edgeFrame(width, height)
+        val whiteRatio = gray.whiteRatio()
+        val blackRatio = gray.blackRatio()
 
         if (sample !== bitmap) sample.recycle()
 
         val blur = laplacianVariance.toMetric(
             key = "blur",
             label = "Imagen enfocada",
-            low = 65.0,
-            target = 280.0,
+            low = 50.0,
+            target = 240.0,
             detail = "Varianza Laplaciana ${laplacianVariance.format(1)}",
         )
         val brightness = centeredMetric(
             key = "brightness",
             label = "Buena iluminacion",
             value = brightnessValue,
-            minGood = 85.0,
-            maxGood = 205.0,
-            minAcceptable = 55.0,
+            minGood = 95.0,
+            maxGood = 200.0,
+            minAcceptable = 60.0,
             maxAcceptable = 230.0,
             detail = "Brillo medio ${brightnessValue.format(0)}",
         )
         val contrast = contrastValue.toMetric(
             key = "contrast",
             label = "Contraste suficiente",
-            low = 28.0,
-            target = 62.0,
+            low = 26.0,
+            target = 60.0,
             detail = "Desviacion ${contrastValue.format(1)}",
         )
-        val textVisibility = ((textDensity * 1.5 * 0.72) + (edgeDensity * 0.28)).coerceIn(0.0, 1.0).toPercentMetric(
+        val textVisibility = ((textDensity * 1.4 * 0.7) + (edgeDensity * 0.3)).coerceIn(0.0, 1.0).toPercentMetric(
             key = "textVisibility",
             label = "Texto visible",
-            passAt = 35,
+            passAt = 30,
             detail = "Densidad textual ${(textDensity * 100).format(0)}%",
         )
         val framing = frame.coverageScore.toPercentMetric(
             key = "framing",
             label = "Comprobante completo",
-            passAt = 72,
+            passAt = 65,
             detail = "Cobertura ${(frame.coverageScore * 100).format(0)}%",
         )
         val perspective = frame.perspectiveScore.toPercentMetric(
             key = "perspective",
             label = "Perspectiva estable",
-            passAt = 45,
+            passAt = 40,
             detail = "Inclinacion ${(100 - frame.perspectiveScore * 100).format(0)}%",
         )
         val resolution = resolutionMetric(bitmap.width, bitmap.height)
 
-        val weighted = blur.score * 0.35 +
-            brightness.score * 0.15 +
-            contrast.score * 0.15 +
+        val weighted = blur.score * 0.30 +
+            brightness.score * 0.12 +
+            contrast.score * 0.13 +
             textVisibility.score * 0.20 +
             framing.score * 0.15
 
-        val penalties = listOf(perspective, resolution).map { if (it.passed) 0 else 6 }.sum()
+        val emptyFramePenalty = if (whiteRatio > 0.97 || blackRatio > 0.92) 12 else 0
+        val perspectivePenalty = if (!perspective.passed) 5 else 0
+        val resolutionPenalty = if (!resolution.passed) 5 else 0
+        val penalties = emptyFramePenalty + perspectivePenalty + resolutionPenalty
         val score = (weighted.toInt() - penalties).coerceIn(0, 100)
 
         return ReceiptQualityReport(
@@ -91,7 +96,7 @@ class ReceiptQualityAnalyzer {
     }
 
     private fun Bitmap.downscaleForAnalysis(): Bitmap {
-        val maxSide = 900
+        val maxSide = 720
         val longest = max(width, height)
         if (longest <= maxSide) return this
         val scale = maxSide.toFloat() / longest
@@ -204,7 +209,7 @@ class ReceiptQualityAnalyzer {
             }
             y += 3
         }
-        if (hits < 80) return FrameScore(0.35, 0.45)
+        if (hits < 80) return FrameScore(0.30, 0.40)
         val boxWidth = (maxX - minX).coerceAtLeast(1)
         val boxHeight = (maxY - minY).coerceAtLeast(1)
         val areaRatio = (boxWidth.toDouble() * boxHeight) / (width.toDouble() * height)
@@ -214,7 +219,6 @@ class ReceiptQualityAnalyzer {
             (marginBalanceX.coerceIn(0.0, 1.0) * 0.14) +
             (marginBalanceY.coerceIn(0.0, 1.0) * 0.14)
         val aspect = boxWidth.toDouble() / boxHeight
-        // Proporción más flexible (acepta desde tickets largos hasta capturas más cuadradas)
         val perspective = (1.0 - abs(aspect - 0.65) / 1.2).coerceIn(0.0, 1.0)
         return FrameScore(coverage.coerceIn(0.0, 1.0), perspective)
     }
@@ -226,6 +230,10 @@ class ReceiptQualityAnalyzer {
         val sumSqDiff = sumOf { value -> (value - mean) * (value - mean) }
         return sqrt(sumSqDiff / size)
     }
+
+    private fun IntArray.whiteRatio(): Double = if (isEmpty()) 0.0 else count { it > 235 }.toDouble() / size
+
+    private fun IntArray.blackRatio(): Double = if (isEmpty()) 0.0 else count { it < 18 }.toDouble() / size
 
     private fun Double.toMetric(key: String, label: String, low: Double, target: Double, detail: String): QualityMetric {
         val score = (((this - low) / (target - low)) * 100).toInt().coerceIn(0, 100)
@@ -264,7 +272,7 @@ class ReceiptQualityAnalyzer {
             key = "resolution",
             label = "Resolucion util",
             score = score,
-            passed = minSide >= 900 && longSide >= 1400,
+            passed = minSide >= 720 && longSide >= 1200,
             detail = "${width}x$height",
         )
     }

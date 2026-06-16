@@ -1,5 +1,6 @@
 package com.simpe.bridge.appmovil.ui.screens.settings
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.*
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -28,7 +30,9 @@ fun SettingsScreen(
     onRequestPermissions: () -> Unit,
     hasCameraPermission: Boolean,
     onRequestCameraPermission: () -> Unit,
-    onLogout: () -> Unit
+    onLogout: () -> Unit,
+    onOpenAppearance: () -> Unit,
+    themeLabel: String,
 ) {
     val context = LocalContext.current
     val settingsManager = remember { SettingsManager(context) }
@@ -49,6 +53,16 @@ fun SettingsScreen(
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
+
+        // Apariencia Section (enlace a pantalla de personalización visual)
+        SettingsSection(title = "Apariencia") {
+            SettingsActionItem(
+                title = "Tema y estilo",
+                description = themeLabel,
+                icon = Icons.Rounded.Palette,
+                onClick = onOpenAppearance
+            )
+        }
 
         // General Section
         SettingsSection(title = "General") {
@@ -316,6 +330,38 @@ fun SettingsSection(
                 content()
             }
         }
+    }
+}
+
+@Composable
+fun SettingsActionItem(
+    title: String,
+    description: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(20.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(text = description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        Icon(
+            imageVector = Icons.Rounded.ChevronRight,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

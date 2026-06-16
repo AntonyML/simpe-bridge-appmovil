@@ -95,7 +95,10 @@ import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.simpe.bridge.appmovil.domain.receipt.QualityMetric
 import com.simpe.bridge.appmovil.domain.receipt.ReceiptCaptureRecord
+import com.simpe.bridge.appmovil.domain.receipt.ReceiptFinalReport
+import com.simpe.bridge.appmovil.domain.receipt.ReceiptLikelihoodReport
 import com.simpe.bridge.appmovil.domain.receipt.ReceiptQualityReport
+import com.simpe.bridge.appmovil.domain.receipt.ReceiptSemanticReport
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -452,6 +455,9 @@ private fun BoxScope.CaptureStatus(stage: ScanStage) {
 @Composable
 private fun AnalysisPanel(uiState: ScanUiState) {
     val report = uiState.qualityReport
+    val semantic = uiState.semanticReport
+    val likelihood = uiState.likelihoodReport
+    val finalReport = uiState.finalReport
     Card(
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
@@ -466,7 +472,7 @@ private fun AnalysisPanel(uiState: ScanUiState) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text("Calidad visual", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(
                         text = stageLabel(uiState.stage),
@@ -474,7 +480,7 @@ private fun AnalysisPanel(uiState: ScanUiState) {
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                ScoreIndicator(score = report?.score ?: 0)
+                ScoreIndicator(score = finalReport?.finalScore ?: report?.score ?: 0)
             }
 
             report?.let {
@@ -484,6 +490,16 @@ private fun AnalysisPanel(uiState: ScanUiState) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
+
+            if (semantic != null) {
+                SemanticSummaryCard(semantic = semantic)
+            }
+            if (likelihood != null) {
+                LikelihoodSummaryCard(likelihood = likelihood)
+            }
+            if (finalReport != null && finalReport.reasons.isNotEmpty()) {
+                RejectionReasonsCard(reasons = finalReport.reasons)
+            }
 
             uiState.previewUri?.path?.let { path ->
                 ReceiptAsyncImage(
@@ -542,6 +558,163 @@ private fun Checklist(report: ReceiptQualityReport) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items.forEach { metric ->
             MetricRow(metric = metric)
+        }
+    }
+}
+
+@Composable
+private fun SemanticSummaryCard(semantic: ReceiptSemanticReport) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Analisis OCR",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "${semantic.score}%",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (semantic.passed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                )
+            }
+            Text(
+                text = "${semantic.characterCount} caracteres · ${semantic.lineCount} lineas · ${semantic.blockCount} bloques",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            if (semantic.keywordHits.isNotEmpty()) {
+                Text(
+                    text = "Coincidencias: " + semantic.keywordHits
+                        .sortedByDescending { it.weight * it.occurrences }
+                        .take(6)
+                        .joinToString(", ") { "${it.keyword} (x${it.occurrences})" },
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                )
+            } else {
+                Text(
+                    text = "Sin palabras clave reconocibles",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            if (semantic.screenshotSignals.isNotEmpty()) {
+                Text(
+                    text = "Senal UI: " + semantic.screenshotSignals.take(4).joinToString(", "),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.tertiary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun LikelihoodSummaryCard(likelihood: ReceiptLikelihoodReport) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    text = "Probabilidad de comprobante",
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.SemiBold,
+                )
+                Text(
+                    text = "${likelihood.score}%",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = if (likelihood.passed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+                )
+            }
+            likelihood.signals.forEach { signal ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Icon(
+                        imageVector = if (signal.passed) Icons.Rounded.CheckCircle else Icons.Rounded.Warning,
+                        contentDescription = null,
+                        tint = if (signal.passed) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.tertiary,
+                        modifier = Modifier.size(16.dp),
+                    )
+                    Text(
+                        text = signal.label,
+                        style = MaterialTheme.typography.labelMedium,
+                        modifier = Modifier.weight(1f),
+                    )
+                    Text(
+                        text = signal.detail,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun RejectionReasonsCard(reasons: List<String>) {
+    Surface(
+        shape = RoundedCornerShape(14.dp),
+        color = MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.6f),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
+            Text(
+                text = "Por que fue rechazada",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onErrorContainer,
+            )
+            reasons.take(4).forEach { reason ->
+                Row(
+                    verticalAlignment = Alignment.Top,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    Text(
+                        text = "•",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                    Text(
+                        text = reason,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onErrorContainer,
+                    )
+                }
+            }
         }
     }
 }
@@ -680,11 +853,16 @@ private fun ReceiptHistoryItem(
                         modifier = Modifier.size(18.dp),
                     )
                     Text(
-                        text = "Calidad ${record.score}%",
+                        text = "Final ${record.finalScore}%",
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold,
                     )
                 }
+                Text(
+                    text = "V${record.visualScore} · S${record.semanticScore} · L${record.likelihoodScore}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 Text(
                     text = record.createdAt.formatRelativeTime(),
                     style = MaterialTheme.typography.bodySmall,
@@ -840,7 +1018,22 @@ private fun ReceiptViewerMetadata(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
-                ScorePill(score = record.score, passed = record.passed)
+                ScorePill(score = record.finalScore, passed = record.passed)
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+            ) {
+                MetadataChip(label = "V ${record.visualScore}")
+                MetadataChip(label = "OCR ${record.semanticScore}")
+                MetadataChip(label = "L ${record.likelihoodScore}")
+            }
+            if (record.rejectionReasons.isNotEmpty()) {
+                Text(
+                    text = "Motivos: " + record.rejectionReasons.take(3).joinToString(" · "),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),

@@ -14,4 +14,10 @@ data class ReceiptCaptureRecord(
     val height: Int,
     val sizeBytes: Long,
     val error: String?,
+    val visualScore: Int = score,
+    val semanticScore: Int = 0,
+    val likelihoodScore: Int = 0,
+    val finalScore: Int = score,
+    val rejectionReasons: List<String> = emptyList(),
+    val ocrSummary: String = "",
 )

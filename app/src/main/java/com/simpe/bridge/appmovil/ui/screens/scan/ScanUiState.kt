@@ -3,7 +3,10 @@ package com.simpe.bridge.appmovil.ui.screens.scan
 import android.net.Uri
 import com.simpe.bridge.appmovil.domain.receipt.OptimizedReceiptImage
 import com.simpe.bridge.appmovil.domain.receipt.ReceiptCaptureRecord
+import com.simpe.bridge.appmovil.domain.receipt.ReceiptFinalReport
+import com.simpe.bridge.appmovil.domain.receipt.ReceiptLikelihoodReport
 import com.simpe.bridge.appmovil.domain.receipt.ReceiptQualityReport
+import com.simpe.bridge.appmovil.domain.receipt.ReceiptSemanticReport
 
 sealed interface ScanStage {
     object Idle : ScanStage
@@ -20,6 +23,9 @@ sealed interface ScanStage {
 data class ScanUiState(
     val stage: ScanStage = ScanStage.Idle,
     val qualityReport: ReceiptQualityReport? = null,
+    val semanticReport: ReceiptSemanticReport? = null,
+    val likelihoodReport: ReceiptLikelihoodReport? = null,
+    val finalReport: ReceiptFinalReport? = null,
     val optimizedImage: OptimizedReceiptImage? = null,
     val previewUri: Uri? = null,
     val captureId: String? = null,
@@ -27,7 +33,10 @@ data class ScanUiState(
     val uploadedMessage: String? = null,
     val correlationToken: String = "",
 ) {
-    val canUpload: Boolean = stage is ScanStage.Passed && optimizedImage != null && correlationToken.isNotBlank()
+    val canUpload: Boolean = stage is ScanStage.Passed &&
+        optimizedImage != null &&
+        correlationToken.isNotBlank() &&
+        (finalReport?.passed ?: false)
     val canRetry: Boolean = stage is ScanStage.Failed || stage is ScanStage.Passed || stage is ScanStage.Error || stage is ScanStage.Uploaded
     val isBusy: Boolean = stage is ScanStage.Capturing || stage is ScanStage.Processing || stage is ScanStage.Validating || stage is ScanStage.Uploading
 }

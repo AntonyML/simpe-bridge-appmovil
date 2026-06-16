@@ -1,5 +1,6 @@
 package com.simpe.bridge.appmovil.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,8 +13,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -22,10 +21,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.simpe.bridge.appmovil.ui.preferences.GlassIntensity
+import com.simpe.bridge.appmovil.ui.theme.glassTokens
 import com.simpe.bridge.appmovil.ui.theme.HazeGrey
 
 // ── Design tokens — fixed by Air Mobile style guide ────────────────────────────
@@ -34,6 +36,7 @@ internal val AirInputShape     = RoundedCornerShape(4.dp)
 internal val AirCardPadding    = 20.dp
 internal val AirScreenPadding  = 16.dp
 internal val AirSectionSpacing = 48.dp
+internal val AirGlassShape     = RoundedCornerShape(20.dp)
 
 // ── Section title — reusable across all dashboard sections ────────────────────
 @Composable
@@ -70,18 +73,19 @@ fun SectionTitle(
     }
 }
 
-// ── Section container — wraps a content block in a card surface ────────────────
+// ── Section card — solid surface (non-glass) ──────────────────────────────────
 @Composable
 fun DashboardSectionCard(
     modifier: Modifier = Modifier,
     containerColor: Color = HazeGrey,
     content: @Composable ColumnScope.() -> Unit,
 ) {
-    Card(
+    Surface(
         modifier = modifier.fillMaxWidth(),
         shape = AirCardShape,
-        colors = CardDefaults.cardColors(containerColor = containerColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        color = containerColor,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
     ) {
         Column(modifier = Modifier.padding(AirCardPadding)) {
             content()
@@ -89,7 +93,64 @@ fun DashboardSectionCard(
     }
 }
 
-// ── Metric item — small label + large value with icon ─────────────────────────
+// ── Glass card — translucent premium surface with subtle gradient + border ───
+@Composable
+fun GlassCard(
+    modifier: Modifier = Modifier,
+    intensity: GlassIntensity = GlassIntensity.Balanced,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val tokens = glassTokens()
+    val baseSurface = tokens.surface
+
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = AirGlassShape,
+        color = baseSurface.copy(alpha = intensity.alpha),
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, tokens.border),
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.05f),
+                            Color.Transparent,
+                        )
+                    )
+                )
+        ) {
+            Column(modifier = Modifier.padding(AirCardPadding)) {
+                content()
+            }
+        }
+    }
+}
+
+// ── Soft section card — surface with hairline border for layered look ────────
+@Composable
+fun SoftSectionCard(
+    modifier: Modifier = Modifier,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = AirCardShape,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(modifier = Modifier.padding(AirCardPadding)) {
+            content()
+        }
+    }
+}
+
+// ── Metric item — small label + large value with optional icon ────────────────
 @Composable
 fun MetricItem(
     label: String,

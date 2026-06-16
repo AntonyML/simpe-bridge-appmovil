@@ -1,6 +1,7 @@
 package com.simpe.bridge.appmovil.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -12,14 +13,15 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Android
+import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.CheckCircle
+import androidx.compose.material.icons.rounded.NotificationsActive
 import androidx.compose.material.icons.rounded.Security
 import androidx.compose.material.icons.rounded.Sms
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -208,5 +210,100 @@ private fun DistributionRow(
             color = color,
             trackColor = HazeGrey
         )
+    }
+}
+
+// ── Quick actions section — premium entry points ──────────────────────────────
+@Composable
+fun QuickActionsSection(
+    onTestSms: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onOpenAppearance: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    DashboardSectionCard(modifier = modifier) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                text = "Acciones rápidas",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                QuickActionTile(
+                    label = "Test SMS",
+                    icon = Icons.Rounded.Bolt,
+                    tone = MetricTone.Positive,
+                    modifier = Modifier.weight(1f),
+                    onClick = onTestSms
+                )
+                QuickActionTile(
+                    label = "Apariencia",
+                    icon = Icons.Rounded.NotificationsActive,
+                    modifier = Modifier.weight(1f),
+                    onClick = onOpenAppearance
+                )
+                QuickActionTile(
+                    label = "Ajustes",
+                    icon = Icons.Rounded.Android,
+                    modifier = Modifier.weight(1f),
+                    onClick = onOpenSettings
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickActionTile(
+    label: String,
+    icon: ImageVector,
+    tone: MetricTone = MetricTone.Neutral,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit,
+) {
+    val tint = when (tone) {
+        MetricTone.Positive -> MaterialTheme.colorScheme.primary
+        MetricTone.Warning  -> MaterialTheme.colorScheme.tertiary
+        MetricTone.Negative -> MaterialTheme.colorScheme.error
+        MetricTone.Neutral  -> MaterialTheme.colorScheme.onSurface
+    }
+    Surface(
+        modifier = modifier
+            .clip(RoundedCornerShape(14.dp))
+            .clickable(onClick = onClick),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 16.dp, horizontal = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(tint.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = tint,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+        }
     }
 }

@@ -25,4 +25,10 @@ data class ReceiptCaptureEntity(
     val metadataJson: String,
     val checklistJson: String,
     val error: String?,
+    val visualScore: Int = score,
+    val semanticScore: Int = 0,
+    val likelihoodScore: Int = 0,
+    val finalScore: Int = score,
+    val rejectionReasonsJson: String = "[]",
+    val ocrSummary: String = "",
 )

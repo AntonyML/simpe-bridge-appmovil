@@ -7,6 +7,8 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.simpe.bridge.appmovil.domain.usecases.SmsMessage
 import com.simpe.bridge.appmovil.ui.components.Screen
+import com.simpe.bridge.appmovil.ui.preferences.UiPreferences
+import com.simpe.bridge.appmovil.ui.screens.appearance.AppearanceScreen
 import com.simpe.bridge.appmovil.ui.screens.login.LoginScreen
 import com.simpe.bridge.appmovil.ui.screens.messages.MessagesScreen
 import com.simpe.bridge.appmovil.ui.screens.scan.ScanScreen
@@ -19,12 +21,16 @@ fun NavGraph(
     hasSmsPermissions: Boolean,
     hasCameraPermission: Boolean,
     isListenerEnabled: Boolean,
+    uiPrefs: UiPreferences,
     onListenerToggle: (Boolean) -> Unit,
     onRequestPermissions: () -> Unit,
     onRequestCameraPermission: () -> Unit,
     onLogout: () -> Unit,
     onCopyText: (String) -> Unit,
     onCopyJson: (String) -> Unit,
+    onUpdatePrefs: (UiPreferences) -> Unit,
+    onTestSms: () -> Unit,
+    themeLabel: String,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -45,8 +51,11 @@ fun NavGraph(
         composable(Screen.Messages.route) {
             MessagesScreen(
                 messages = messages,
+                uiPrefs = uiPrefs,
                 onCopyText = onCopyText,
-                onCopyJson = onCopyJson
+                onCopyJson = onCopyJson,
+                onTestSms = onTestSms,
+                onOpenSettings = { navController.navigate(Screen.Settings.route) }
             )
         }
         composable(Screen.QR.route) {
@@ -62,7 +71,15 @@ fun NavGraph(
                 onRequestPermissions = onRequestPermissions,
                 hasCameraPermission = hasCameraPermission,
                 onRequestCameraPermission = onRequestCameraPermission,
-                onLogout = onLogout
+                onLogout = onLogout,
+                onOpenAppearance = { navController.navigate(Screen.Appearance.route) },
+                themeLabel = themeLabel
+            )
+        }
+        composable(Screen.Appearance.route) {
+            AppearanceScreen(
+                prefs = uiPrefs,
+                onChange = onUpdatePrefs
             )
         }
     }

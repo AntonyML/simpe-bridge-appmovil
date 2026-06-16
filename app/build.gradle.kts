@@ -95,6 +95,9 @@ dependencies {
     implementation("androidx.camera:camera-view:1.4.1")
     implementation("androidx.exifinterface:exifinterface:1.3.7")
 
+    // ML Kit Text Recognition v2 (local OCR for prevalidation)
+    implementation("com.google.mlkit:text-recognition:16.0.1")
+
     implementation(composeBom)
     androidTestImplementation(composeBom)
     implementation("androidx.compose.ui:ui")

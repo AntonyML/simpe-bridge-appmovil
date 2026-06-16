@@ -10,6 +10,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.*
@@ -34,10 +35,15 @@ import com.simpe.bridge.appmovil.domain.usecases.MessageStatus
 import com.simpe.bridge.appmovil.domain.usecases.ProcessSmsUseCase
 import com.simpe.bridge.appmovil.domain.usecases.SmsMessage
 import com.simpe.bridge.appmovil.notifications.NotificationHelper
+import com.simpe.bridge.appmovil.ui.components.AppDrawerContent
 import com.simpe.bridge.appmovil.ui.components.AppTopBar
 import com.simpe.bridge.appmovil.ui.components.BottomNavBar
+import com.simpe.bridge.appmovil.ui.components.DrawerDestination
 import com.simpe.bridge.appmovil.ui.components.Screen
 import com.simpe.bridge.appmovil.ui.navigation.NavGraph
+import com.simpe.bridge.appmovil.ui.preferences.ThemeMode
+import com.simpe.bridge.appmovil.ui.preferences.UiPreferences
+import com.simpe.bridge.appmovil.ui.preferences.UiPreferencesStore
 import com.simpe.bridge.appmovil.ui.screens.messages.MessagesViewModel
 import com.simpe.bridge.appmovil.ui.theme.SimpeBridgeTheme
 import kotlinx.coroutines.CoroutineScope
@@ -51,6 +57,7 @@ class MainActivity : ComponentActivity() {
     private var hasCameraPermission by mutableStateOf(false)
     private var isListenerEnabled by mutableStateOf(true)
     private lateinit var sessionManager: SessionManager
+    private lateinit var uiPrefsStore: UiPreferencesStore
 
     private val smsPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()
@@ -84,15 +91,15 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         sessionManager = SessionManager(applicationContext)
-        
-        // Inicializar el Manager para el API en Fly.dev
+        uiPrefsStore = UiPreferencesStore(applicationContext)
+
         if (!SinpeBridgeHttpManager.isInitialized()) {
             SinpeBridgeHttpManager.initialize(
                 context = applicationContext,
                 config = HttpClientConfig(
-                    apiKey = "fly-dev-key", // Cambia esto si tienes un API Key específico
+                    apiKey = "fly-dev-key",
                     enableLogging = true
                 )
             )
@@ -102,16 +109,28 @@ class MainActivity : ComponentActivity() {
         checkPermissions()
 
         setContent {
-            SimpeBridgeTheme {
+            val uiPrefs by uiPrefsStore.prefsFlow.collectAsStateWithLifecycle()
+            val systemDark = isSystemInDarkTheme()
+            val effectiveDark = when (uiPrefs.themeMode) {
+                ThemeMode.System -> systemDark
+                ThemeMode.Light  -> false
+                ThemeMode.Dark   -> true
+            }
+            SimpeBridgeTheme(darkTheme = effectiveDark) {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
+                val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+                val scope = rememberCoroutineScope()
 
                 val viewModel: MessagesViewModel = viewModel(
                     factory = MessagesViewModel.factory(applicationContext)
                 )
                 val messages by viewModel.messages.collectAsStateWithLifecycle()
                 var showTestSmsDialog by remember { mutableStateOf(false) }
+                var prefsState by remember { mutableStateOf(uiPrefs) }
+
+                LaunchedEffect(uiPrefs) { prefsState = uiPrefs }
 
                 if (showTestSmsDialog) {
                     TestSmsDialog(
@@ -137,7 +156,7 @@ class MainActivity : ComponentActivity() {
                                 format = "3gpp",
                                 messageStatus = MessageStatus.SENT
                             )
-                            
+
                             CoroutineScope(Dispatchers.Main).launch {
                                 val result = withContext(Dispatchers.IO) {
                                     SinpeBridgeHttpManager.getClient().postSmsMessage(
@@ -146,7 +165,7 @@ class MainActivity : ComponentActivity() {
                                         idPos = idPos
                                     )
                                 }
-                                
+
                                 if (result is NetworkResult.Success) {
                                     viewModel.saveMessage(testMessage)
                                     Toast.makeText(this@MainActivity, "SMS enviado con éxito", Toast.LENGTH_SHORT).show()
@@ -159,62 +178,115 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
-                Scaffold(
-                    modifier = Modifier.fillMaxSize(),
-                    topBar = {
-                        if (currentRoute != Screen.Login.route) {
-                            AppTopBar(
-                                messageCount = messages.size,
-                                onTestSmsClick = { showTestSmsDialog = true }
-                            )
+                val onDrawerDestination: (DrawerDestination) -> Unit = { dest ->
+                    scope.launch { drawerState.close() }
+                    when (dest) {
+                        DrawerDestination.Dashboard  -> navController.navigate(Screen.Messages.route) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
-                    },
-                    bottomBar = {
-                        if (currentRoute != Screen.Login.route) {
-                            BottomNavBar(
-                                currentRoute = currentRoute,
-                                onNavigate = { route ->
-                                    navController.navigate(route) {
-                                        popUpTo(navController.graph.startDestinationId) {
-                                            saveState = true
-                                        }
-                                        launchSingleTop = true
-                                        restoreState = true
-                                    }
-                                }
-                            )
+                        DrawerDestination.Mensajes   -> navController.navigate(Screen.Messages.route) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
                         }
+                        DrawerDestination.Escanear   -> { /* deshabilitado */ }
+                        DrawerDestination.Tema       -> navController.navigate(Screen.Appearance.route)
+                        DrawerDestination.Ajustes    -> navController.navigate(Screen.Settings.route)
                     }
-                ) { innerPadding ->
-                    NavGraph(
-                        navController = navController,
-                        messages = messages,
-                        hasSmsPermissions = hasSmsPermissions,
-                        hasCameraPermission = hasCameraPermission,
-                        isListenerEnabled = isListenerEnabled,
-                        onListenerToggle = { isListenerEnabled = it },
-                        onRequestPermissions = { requestSmsPermissions() },
-                        onRequestCameraPermission = { requestCameraPermission() },
-                        onLogout = {
-                            sessionManager.clearSession()
-                            navController.navigate(Screen.Login.route) {
-                                popUpTo(0) { inclusive = true }
+                }
+
+                ModalNavigationDrawer(
+                    drawerState = drawerState,
+                    drawerContent = {
+                        AppDrawerContent(
+                            currentKey = currentRoute,
+                            onDestination = onDrawerDestination,
+                            onLogout = {
+                                scope.launch { drawerState.close() }
+                                sessionManager.clearSession()
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                                Toast.makeText(this@MainActivity, "Sesión cerrada", Toast.LENGTH_SHORT).show()
                             }
-                            Toast.makeText(this, "Sesión cerrada", Toast.LENGTH_SHORT).show()
+                        )
+                    },
+                    scrimColor = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.4f),
+                ) {
+                    Scaffold(
+                        modifier = Modifier.fillMaxSize(),
+                        topBar = {
+                            if (currentRoute != Screen.Login.route) {
+                                AppTopBar(
+                                    messageCount = messages.size,
+                                    onTestSmsClick = { showTestSmsDialog = true },
+                                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                                )
+                            }
                         },
-                        onCopyText = { copyToClipboard("Mensaje", it) },
-                        onCopyJson = { copyToClipboard("JSON", it) },
-                        modifier = Modifier.padding(innerPadding)
-                    )
+                        bottomBar = {
+                            if (currentRoute != Screen.Login.route &&
+                                currentRoute != Screen.Appearance.route) {
+                                BottomNavBar(
+                                    currentRoute = currentRoute,
+                                    onNavigate = { route ->
+                                        navController.navigate(route) {
+                                            popUpTo(navController.graph.startDestinationId) {
+                                                saveState = true
+                                            }
+                                            launchSingleTop = true
+                                            restoreState = true
+                                        }
+                                    }
+                                )
+                            }
+                        }
+                    ) { innerPadding ->
+                        NavGraph(
+                            navController = navController,
+                            messages = messages,
+                            hasSmsPermissions = hasSmsPermissions,
+                            hasCameraPermission = hasCameraPermission,
+                            isListenerEnabled = isListenerEnabled,
+                            uiPrefs = prefsState,
+                            onListenerToggle = { isListenerEnabled = it },
+                            onRequestPermissions = { requestSmsPermissions() },
+                            onRequestCameraPermission = { requestCameraPermission() },
+                            onLogout = {
+                                sessionManager.clearSession()
+                                navController.navigate(Screen.Login.route) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                                Toast.makeText(this, "Sesión cerrada", Toast.LENGTH_SHORT).show()
+                            },
+                            onCopyText = { copyToClipboard("Mensaje", it) },
+                            onCopyJson = { copyToClipboard("JSON", it) },
+                            onUpdatePrefs = { newPrefs ->
+                                prefsState = newPrefs
+                                uiPrefsStore.save(newPrefs)
+                            },
+                            onTestSms = { showTestSmsDialog = true },
+                            themeLabel = themeLabelFor(prefsState.themeMode),
+                            modifier = Modifier.padding(innerPadding)
+                        )
+                    }
                 }
             }
         }
     }
 
+    private fun themeLabelFor(mode: ThemeMode): String = when (mode) {
+        ThemeMode.System -> "Sigue el sistema"
+        ThemeMode.Light  -> "Modo claro"
+        ThemeMode.Dark   -> "Modo oscuro"
+    }
+
     private fun checkPermissions() {
         hasSmsPermissions = hasAllSmsPermissions()
         hasCameraPermission = hasCameraPermission()
-        
+
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
                 notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
