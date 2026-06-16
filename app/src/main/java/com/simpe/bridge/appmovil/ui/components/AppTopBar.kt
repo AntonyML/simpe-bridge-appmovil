@@ -4,9 +4,12 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.BugReport
@@ -37,11 +40,12 @@ fun AppTopBar(
 ) {
     Surface(
         color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 0.dp,
+        tonalElevation = 1.dp,
         shadowElevation = 0.dp,
     ) {
         TopAppBar(
             modifier = Modifier.height(64.dp),
+            windowInsets = WindowInsets.statusBars,
             navigationIcon = {
                 IconButton(
                     onClick = onOpenDrawer,
@@ -66,7 +70,7 @@ fun AppTopBar(
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
-                    StatusChip(label = "Solo Android")
+                    StatusChip(label = "Android")
                 }
             },
             actions = {

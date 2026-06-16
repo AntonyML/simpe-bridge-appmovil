@@ -212,7 +212,8 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     },
-                    scrimColor = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.45f),
+                    scrimColor = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.55f),
+                    gesturesEnabled = true,
                 ) {
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),

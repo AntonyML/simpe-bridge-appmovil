@@ -1,5 +1,6 @@
 package com.simpe.bridge.appmovil.ui.components
 
+import android.os.Build
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -7,10 +8,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -24,7 +23,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.TileMode
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -34,13 +36,14 @@ import com.simpe.bridge.appmovil.ui.theme.glassTokens
 import com.simpe.bridge.appmovil.ui.theme.HazeGrey
 
 // ── Design tokens — fixed by Air Mobile style guide ────────────────────────────
-internal val AirCardShape      = RoundedCornerShape(20.dp)
-internal val AirCardShapeSmall = RoundedCornerShape(14.dp)
-internal val AirInputShape     = RoundedCornerShape(10.dp)
+internal val AirCardShape      = RoundedCornerShape(22.dp)
+internal val AirCardShapeSmall = RoundedCornerShape(16.dp)
+internal val AirInputShape     = RoundedCornerShape(12.dp)
 internal val AirCardPadding    = 20.dp
 internal val AirScreenPadding  = 16.dp
 internal val AirSectionSpacing = 28.dp
 internal val AirGlassShape     = RoundedCornerShape(24.dp)
+internal val AirGlassShapeLarge = RoundedCornerShape(28.dp)
 
 // ── Section title — reusable across all dashboard sections ────────────────────
 @Composable
@@ -97,7 +100,7 @@ fun DashboardSectionCard(
     }
 }
 
-// ── Glass card — translucent premium surface with real layered translucency ────
+// ── Glass card — real layered translucent surface ────────────────────────────
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
@@ -105,13 +108,29 @@ fun GlassCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val tokens = glassTokens()
+    val baseAlpha = intensity.alpha
+
+    val blurSupported = Build.VERSION.SDK_INT >= Build.VERSION_CODES.S
+    val blurModifier = if (blurSupported) {
+        Modifier.graphicsLayer {
+            renderEffect = androidx.compose.ui.graphics.BlurEffect(
+                radiusX = 18f,
+                radiusY = 18f,
+                edgeTreatment = TileMode.Decal,
+            )
+            this.alpha = baseAlpha
+        }
+    } else Modifier
+
     Surface(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(blurModifier)
+            .clip(AirGlassShape),
         shape = AirGlassShape,
-        color = tokens.fill.copy(alpha = intensity.alpha),
-        tonalElevation = 0.dp,
+        color = if (blurSupported) tokens.fill.copy(alpha = 0.85f) else tokens.fill.copy(alpha = baseAlpha),
+        tonalElevation = 2.dp,
         shadowElevation = 0.dp,
-        border = BorderStroke(1.dp, tokens.border),
     ) {
         Box(
             modifier = Modifier
@@ -124,8 +143,54 @@ fun GlassCard(
                         )
                     )
                 )
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            Color.Transparent,
+                            tokens.border.copy(alpha = 0.5f),
+                        )
+                    )
+                )
         ) {
             Column(modifier = Modifier.padding(AirCardPadding)) {
+                content()
+            }
+        }
+    }
+}
+
+// ── Glass panel — for large surfaces (drawer, sheets) with real depth ────────
+@Composable
+fun GlassPanel(
+    modifier: Modifier = Modifier,
+    intensity: GlassIntensity = GlassIntensity.Balanced,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val tokens = glassTokens()
+    val baseAlpha = intensity.alpha
+
+    Surface(
+        modifier = modifier
+            .clip(AirGlassShapeLarge),
+        shape = AirGlassShapeLarge,
+        color = tokens.fill.copy(alpha = baseAlpha),
+        tonalElevation = 3.dp,
+        shadowElevation = 0.dp,
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            tokens.highlight,
+                            Color.Transparent,
+                            Color.Transparent,
+                        )
+                    )
+                )
+        ) {
+            Column {
                 content()
             }
         }
@@ -264,7 +329,7 @@ fun PremiumCard(
         modifier = baseModifier.fillMaxWidth(),
         shape = AirCardShape,
         color = containerColor,
-        tonalElevation = 0.dp,
+        tonalElevation = 1.dp,
         shadowElevation = 0.dp,
         onClick = onClick ?: {},
         enabled = onClick != null,
