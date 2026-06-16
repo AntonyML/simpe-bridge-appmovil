@@ -55,12 +55,22 @@ fun NavGraph(
                 onCopyText = onCopyText,
                 onCopyJson = onCopyJson,
                 onTestSms = onTestSms,
-                onOpenSettings = { navController.navigate(Screen.Settings.route) }
+                onOpenScan = { navController.navigate(Screen.QR.route) },
+                onOpenSettings = { navController.navigate(Screen.Settings.route) },
+                onOpenAppearance = { navController.navigate(Screen.Appearance.route) }
             )
         }
         composable(Screen.QR.route) {
             ScanScreen(
-                onClose = { navController.navigate(Screen.Messages.route) }
+                onClose = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Messages.route) {
+                            popUpTo(navController.graph.startDestinationId) { saveState = true }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                }
             )
         }
         composable(Screen.Settings.route) {

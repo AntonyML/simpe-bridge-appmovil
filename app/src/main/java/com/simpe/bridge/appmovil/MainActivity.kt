@@ -116,7 +116,7 @@ class MainActivity : ComponentActivity() {
                 ThemeMode.Light  -> false
                 ThemeMode.Dark   -> true
             }
-            SimpeBridgeTheme(darkTheme = effectiveDark) {
+            SimpeBridgeTheme(darkTheme = effectiveDark, fontScale = uiPrefs.fontScale.scale) {
                 val navController = rememberNavController()
                 val navBackStackEntry by navController.currentBackStackEntryAsState()
                 val currentRoute = navBackStackEntry?.destination?.route
@@ -178,20 +178,19 @@ class MainActivity : ComponentActivity() {
                     )
                 }
 
+                val goToRootMessages: () -> Unit = {
+                    navController.navigate(Screen.Messages.route) {
+                        popUpTo(navController.graph.startDestinationId) { saveState = true }
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                }
+
                 val onDrawerDestination: (DrawerDestination) -> Unit = { dest ->
                     scope.launch { drawerState.close() }
                     when (dest) {
-                        DrawerDestination.Dashboard  -> navController.navigate(Screen.Messages.route) {
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                        DrawerDestination.Mensajes   -> navController.navigate(Screen.Messages.route) {
-                            popUpTo(navController.graph.startDestinationId) { saveState = true }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                        DrawerDestination.Escanear   -> { /* deshabilitado */ }
+                        DrawerDestination.Dashboard  -> goToRootMessages()
+                        DrawerDestination.Mensajes   -> goToRootMessages()
                         DrawerDestination.Tema       -> navController.navigate(Screen.Appearance.route)
                         DrawerDestination.Ajustes    -> navController.navigate(Screen.Settings.route)
                     }
@@ -213,7 +212,7 @@ class MainActivity : ComponentActivity() {
                             }
                         )
                     },
-                    scrimColor = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.4f),
+                    scrimColor = androidx.compose.ui.graphics.Color.Black.copy(alpha = 0.45f),
                 ) {
                     Scaffold(
                         modifier = Modifier.fillMaxSize(),

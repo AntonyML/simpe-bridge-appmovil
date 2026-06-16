@@ -21,7 +21,6 @@ import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material.icons.rounded.Message
 import androidx.compose.material.icons.rounded.Palette
-import androidx.compose.material.icons.rounded.PhotoCamera
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -38,20 +37,17 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.simpe.bridge.appmovil.ui.theme.glassTokens
-import com.simpe.bridge.appmovil.ui.theme.HazeGrey
 
 sealed class DrawerDestination(
     val key: String,
     val label: String,
     val icon: ImageVector,
     val description: String,
-    val enabled: Boolean = true,
 ) {
-    object Dashboard   : DrawerDestination("dashboard",   "Panel",        Icons.Rounded.Dashboard,   "Resumen y métricas",        true)
-    object Mensajes    : DrawerDestination("messages",    "Mensajes",     Icons.Rounded.Message,     "Bandeja de SMS",            true)
-    object Escanear    : DrawerDestination("scan",        "Escanear",     Icons.Rounded.PhotoCamera, "Captura de comprobantes",   false)
-    object Tema        : DrawerDestination("appearance",  "Apariencia",   Icons.Rounded.Palette,     "Tema, vidrio, densidad",    true)
-    object Ajustes     : DrawerDestination("settings",    "Ajustes",      Icons.Rounded.Settings,    "Permisos y bridge",         true)
+    object Dashboard   : DrawerDestination("dashboard",   "Panel",        Icons.Rounded.Dashboard,   "Resumen y métricas")
+    object Mensajes    : DrawerDestination("messages",    "Mensajes",     Icons.Rounded.Message,     "Bandeja de SMS")
+    object Tema        : DrawerDestination("appearance",  "Apariencia",   Icons.Rounded.Palette,     "Tema, vidrio, densidad")
+    object Ajustes     : DrawerDestination("settings",    "Ajustes",      Icons.Rounded.Settings,    "Permisos y bridge")
 }
 
 @Composable
@@ -62,97 +58,134 @@ fun AppDrawerContent(
     modifier: Modifier = Modifier,
 ) {
     val tokens = glassTokens()
-    val destinations = listOf(
+    val primary = MaterialTheme.colorScheme.primary
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+
+    val navGroup = listOf(
         DrawerDestination.Dashboard,
         DrawerDestination.Mensajes,
-        DrawerDestination.Escanear,
+    )
+    val configGroup = listOf(
         DrawerDestination.Tema,
         DrawerDestination.Ajustes,
     )
 
     Surface(
         modifier = modifier.fillMaxHeight(),
-        color = tokens.surface.copy(alpha = 0.96f),
+        color = tokens.fill,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(300.dp)
+                .width(320.dp)
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 0.04f),
+                            tokens.highlight,
                             Color.Transparent,
                         )
                     )
                 )
-                .padding(horizontal = 16.dp, vertical = 24.dp)
         ) {
-            DrawerHeader()
-            Spacer(Modifier.height(24.dp))
-
-            Text(
-                text = "Navegación",
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(start = 12.dp, bottom = 8.dp)
+            DrawerHeader(
+                primary = primary,
+                onSurface = onSurface,
+                onSurfaceVariant = onSurfaceVariant,
+            )
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant,
+                modifier = Modifier.padding(horizontal = 20.dp)
             )
 
-            destinations.forEach { dest ->
+            Spacer(Modifier.height(8.dp))
+            DrawerSectionLabel("Navegación")
+            navGroup.forEach { dest ->
                 DrawerItem(
                     destination = dest,
                     selected = dest.key == currentKey,
-                    onClick = { if (dest.enabled) onDestination(dest) }
+                    onClick = { onDestination(dest) }
                 )
-                Spacer(Modifier.height(4.dp))
             }
 
-            Spacer(Modifier.height(16.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(12.dp))
+            DrawerSectionLabel("Personalización")
+            configGroup.forEach { dest ->
+                DrawerItem(
+                    destination = dest,
+                    selected = dest.key == currentKey,
+                    onClick = { onDestination(dest) }
+                )
+            }
 
+            Spacer(Modifier.weight(1f))
+            HorizontalDivider(
+                color = MaterialTheme.colorScheme.outlineVariant,
+                modifier = Modifier.padding(horizontal = 20.dp)
+            )
             DrawerLogout(onClick = onLogout)
         }
     }
 }
 
 @Composable
-private fun DrawerHeader() {
+private fun DrawerHeader(
+    primary: Color,
+    onSurface: Color,
+    onSurfaceVariant: Color,
+) {
     Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 20.dp, vertical = 28.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(44.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(MaterialTheme.colorScheme.primaryContainer),
+                .size(52.dp)
+                .clip(RoundedCornerShape(16.dp))
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(primary, primary.copy(alpha = 0.7f))
+                    )
+                ),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Rounded.Android,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(22.dp)
+                tint = Color.White,
+                modifier = Modifier.size(26.dp)
             )
         }
         Column {
             Text(
                 text = "SIMPE Bridge",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
+                color = onSurface
             )
             Text(
                 text = "v1.0.0 · Solo Android",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                style = MaterialTheme.typography.labelMedium,
+                color = onSurfaceVariant
             )
         }
     }
+}
+
+@Composable
+private fun DrawerSectionLabel(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.labelSmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(start = 32.dp, top = 8.dp, bottom = 8.dp)
+    )
 }
 
 @Composable
@@ -161,31 +194,29 @@ private fun DrawerItem(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val bg = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.12f)
+    val bg = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
              else Color.Transparent
-    val contentColor = when {
-        !destination.enabled -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.45f)
-        selected             -> MaterialTheme.colorScheme.primary
-        else                 -> MaterialTheme.colorScheme.onSurface
-    }
+    val contentColor = if (selected) MaterialTheme.colorScheme.primary
+                       else MaterialTheme.colorScheme.onSurface
 
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(12.dp))
+            .padding(horizontal = 12.dp, vertical = 2.dp)
+            .clip(RoundedCornerShape(14.dp))
             .background(bg)
-            .clickable(enabled = destination.enabled, onClick = onClick)
+            .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
-                .clip(RoundedCornerShape(8.dp))
+                .size(36.dp)
+                .clip(RoundedCornerShape(10.dp))
                 .background(
-                    if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
-                    else HazeGrey.copy(alpha = 0.6f)
+                    if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.20f)
+                    else MaterialTheme.colorScheme.surfaceContainer
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -193,30 +224,20 @@ private fun DrawerItem(
                 imageVector = destination.icon,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = destination.label,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
                 fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
                 color = contentColor
             )
             Text(
                 text = destination.description,
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(
-                    alpha = if (destination.enabled) 0.85f else 0.4f
-                )
-            )
-        }
-        if (!destination.enabled) {
-            Text(
-                text = "Pronto",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f),
-                fontWeight = FontWeight.SemiBold
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -227,17 +248,18 @@ private fun DrawerLogout(onClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 32.dp, vertical = 20.dp)
             .clip(RoundedCornerShape(12.dp))
             .clickable(onClick = onClick)
             .padding(horizontal = 12.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp)
+        horizontalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(32.dp)
+                .size(36.dp)
                 .clip(CircleShape)
-                .background(MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.7f)),
+                .background(MaterialTheme.colorScheme.errorContainer),
             contentAlignment = Alignment.Center
         ) {
             Icon(
@@ -249,7 +271,7 @@ private fun DrawerLogout(onClick: () -> Unit) {
         }
         Text(
             text = "Cerrar sesión",
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodyLarge,
             fontWeight = FontWeight.Medium,
             color = MaterialTheme.colorScheme.onSurface
         )

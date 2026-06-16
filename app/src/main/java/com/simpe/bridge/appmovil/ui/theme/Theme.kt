@@ -15,36 +15,50 @@ import androidx.core.view.WindowCompat
 // ── Air Design System Palette ──────────────────────────────────────────────────
 internal val SkyCanvas    = Color(0xFF426188)
 internal val ActionBlue   = Color(0xFF2B7FFF)
-internal val MidnightInk  = Color(0xFF000000)
-internal val CloudWhite   = Color(0xFFFFFFFF)
 internal val CharcoalText = Color(0xFF1B1B1B)
 internal val HazeGrey     = Color(0xFFF5F5F5)
+internal val CloudWhite   = Color(0xFFFFFFFF)
 
 // ── Light mode derived tokens ──────────────────────────────────────────────────
 private val ActionBlueContainerLight  = Color(0xFFE4EFFF)
 private val OnActionBlueContainerLight = Color(0xFF002F6E)
 private val SkyCanvasContainerLight   = Color(0xFFDDE7F5)
 private val OnSkyCanvasContainerLight = Color(0xFF1A3557)
-private val OutlineLight              = Color(0x14000000) // rgba(0,0,0,0.08)
-private val OutlineVariantLight       = Color(0x0A000000) // rgba(0,0,0,0.04)
+private val OutlineLight              = Color(0x14000000)
+private val OutlineVariantLight       = Color(0x0A000000)
 private val OnSurfaceVariantLight     = Color(0xFF595E66)
 private val SurfaceTintLight          = Color(0xFFFAFBFD)
 private val SurfaceContainerLight     = Color(0xFFF2F4F7)
-private val GlassLight                = Color(0xCCFFFFFF)
-private val GlassBorderLight          = Color(0x1F000000)
+private val SurfaceContainerHighLight = Color(0xFFEDEFF3)
+private val SurfaceContainerHighestLight = Color(0xFFE7EAEF)
 
-// ── Dark mode surface stack — softer, not pure black ──────────────────────────
-private val DarkBackground       = Color(0xFF0F1419)
-private val DarkSurface          = Color(0xFF161B22)
-private val DarkSurfaceVariant   = Color(0xFF1C2128)
-private val DarkSurfaceContainer = Color(0xFF1F2630)
-private val DarkOnSurface        = Color(0xFFE6EDF3)
-private val DarkOnSurfaceVariant = Color(0xFF9DA7B3)
-private val ActionBlueDark       = Color(0xFF5C9BFF)
-private val OutlineDark          = Color(0x33FFFFFF)
-private val OutlineVariantDark   = Color(0x1AFFFFFF)
-private val GlassDark            = Color(0xCC161B22)
-private val GlassBorderDark      = Color(0x33FFFFFF)
+private val GlassLightFill       = Color(0xCCFFFFFF)
+private val GlassLightHighlight  = Color(0x66FFFFFF)
+private val GlassLightBorder     = Color(0x33000000)
+private val GlassLightScrim      = Color(0x66FFFFFF)
+
+// ── Dark mode surface stack — softer, layered, no pure black ───────────────────
+private val DarkBackground            = Color(0xFF13171F)
+private val DarkSurface               = Color(0xFF1B2029)
+private val DarkSurfaceVariant        = Color(0xFF222934)
+private val DarkSurfaceContainer      = Color(0xFF252C37)
+private val DarkSurfaceContainerHigh  = Color(0xFF2C343F)
+private val DarkSurfaceContainerHighest = Color(0xFF353D49)
+private val DarkOnSurface             = Color(0xFFE6EAF1)
+private val DarkOnSurfaceVariant      = Color(0xFFA6B0BD)
+private val ActionBlueDark            = Color(0xFF6FA1FF)
+private val OnActionBlueDark          = Color(0xFF002F6E)
+private val ActionBlueContainerDark   = Color(0xFF254A82)
+private val OnActionBlueContainerDark = Color(0xFFD6E8FF)
+private val SkyCanvasContainerDark    = Color(0xFF34465E)
+private val OnSkyCanvasContainerDark  = Color(0xFFD4E5F7)
+private val OutlineDark               = Color(0x33FFFFFF)
+private val OutlineVariantDark        = Color(0x1FFFFFFF)
+
+private val GlassDarkFill       = Color(0xB31B2029)
+private val GlassDarkHighlight  = Color(0x33FFFFFF)
+private val GlassDarkBorder     = Color(0x4DFFFFFF)
+private val GlassDarkScrim      = Color(0x80000000)
 
 // ── Light scheme ──────────────────────────────────────────────────────────────
 private val LightColorScheme = lightColorScheme(
@@ -70,7 +84,8 @@ private val LightColorScheme = lightColorScheme(
     onSurface            = CharcoalText,
     surfaceVariant       = HazeGrey,
     surfaceContainer     = SurfaceContainerLight,
-    surfaceContainerHigh = Color(0xFFEDEFF3),
+    surfaceContainerHigh = SurfaceContainerHighLight,
+    surfaceContainerHighest = SurfaceContainerHighestLight,
     onSurfaceVariant     = OnSurfaceVariantLight,
     outline              = OutlineLight,
     outlineVariant       = OutlineVariantLight,
@@ -84,14 +99,14 @@ private val LightColorScheme = lightColorScheme(
 // ── Dark scheme ───────────────────────────────────────────────────────────────
 private val DarkColorScheme = darkColorScheme(
     primary              = ActionBlueDark,
-    onPrimary            = Color(0xFF002F6E),
-    primaryContainer     = Color(0xFF1B4A8C),
-    onPrimaryContainer   = Color(0xFFD6E8FF),
-    secondary            = Color(0xFF8DACC9),
+    onPrimary            = CloudWhite,
+    primaryContainer     = ActionBlueContainerDark,
+    onPrimaryContainer   = OnActionBlueContainerDark,
+    secondary            = Color(0xFFA0B7CE),
     onSecondary          = Color(0xFF1A3557),
-    secondaryContainer   = Color(0xFF2E4F6B),
-    onSecondaryContainer = Color(0xFFD4E5F7),
-    tertiary             = Color(0xFF9ABFE0),
+    secondaryContainer   = SkyCanvasContainerDark,
+    onSecondaryContainer = OnSkyCanvasContainerDark,
+    tertiary             = Color(0xFFA6C4DE),
     onTertiary           = Color(0xFF1A3857),
     tertiaryContainer    = Color(0xFF2A4D72),
     onTertiaryContainer  = Color(0xFFCDE4F8),
@@ -105,7 +120,8 @@ private val DarkColorScheme = darkColorScheme(
     onSurface            = DarkOnSurface,
     surfaceVariant       = DarkSurfaceVariant,
     surfaceContainer     = DarkSurfaceContainer,
-    surfaceContainerHigh = Color(0xFF252C36),
+    surfaceContainerHigh = DarkSurfaceContainerHigh,
+    surfaceContainerHighest = DarkSurfaceContainerHighest,
     onSurfaceVariant     = DarkOnSurfaceVariant,
     outline              = OutlineDark,
     outlineVariant       = OutlineVariantDark,
@@ -113,26 +129,29 @@ private val DarkColorScheme = darkColorScheme(
     inverseOnSurface     = DarkBackground,
     inversePrimary       = ActionBlue,
     surfaceTint          = ActionBlueDark,
-    scrim                = Color(0x99000000),
+    scrim                = Color(0xAA000000),
 )
 
 // ── Glass tokens — exported for premium surfaces ──────────────────────────────
 data class GlassTokens(
-    val surface: Color,
+    val fill: Color,
+    val highlight: Color,
     val border: Color,
-    val subtleSurface: Color,
+    val scrim: Color,
 )
 
 internal val LightGlass = GlassTokens(
-    surface = GlassLight,
-    border = GlassBorderLight,
-    subtleSurface = Color(0x80FFFFFF),
+    fill = GlassLightFill,
+    highlight = GlassLightHighlight,
+    border = GlassLightBorder,
+    scrim = GlassLightScrim,
 )
 
 internal val DarkGlass = GlassTokens(
-    surface = GlassDark,
-    border = GlassBorderDark,
-    subtleSurface = Color(0x80161B22),
+    fill = GlassDarkFill,
+    highlight = GlassDarkHighlight,
+    border = GlassDarkBorder,
+    scrim = GlassDarkScrim,
 )
 
 @Composable
@@ -143,6 +162,7 @@ fun glassTokens(): GlassTokens =
 @Composable
 fun SimpeBridgeTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
+    fontScale: Float = 1.0f,
     content: @Composable () -> Unit
 ) {
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
@@ -163,7 +183,7 @@ fun SimpeBridgeTheme(
 
     MaterialTheme(
         colorScheme = colorScheme,
-        typography = AppTypography,
+        typography = if (fontScale == 1.0f) AppTypography else scaledTypography(fontScale),
         content = content
     )
 }

@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -25,18 +27,20 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.simpe.bridge.appmovil.ui.preferences.GlassIntensity
 import com.simpe.bridge.appmovil.ui.theme.glassTokens
 import com.simpe.bridge.appmovil.ui.theme.HazeGrey
 
 // ── Design tokens — fixed by Air Mobile style guide ────────────────────────────
-internal val AirCardShape      = RoundedCornerShape(14.dp)
-internal val AirInputShape     = RoundedCornerShape(4.dp)
+internal val AirCardShape      = RoundedCornerShape(20.dp)
+internal val AirCardShapeSmall = RoundedCornerShape(14.dp)
+internal val AirInputShape     = RoundedCornerShape(10.dp)
 internal val AirCardPadding    = 20.dp
 internal val AirScreenPadding  = 16.dp
-internal val AirSectionSpacing = 48.dp
-internal val AirGlassShape     = RoundedCornerShape(20.dp)
+internal val AirSectionSpacing = 28.dp
+internal val AirGlassShape     = RoundedCornerShape(24.dp)
 
 // ── Section title — reusable across all dashboard sections ────────────────────
 @Composable
@@ -49,7 +53,7 @@ fun SectionTitle(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .padding(top = 8.dp, bottom = 12.dp),
+            .padding(top = 4.dp, bottom = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Column(modifier = Modifier.weight(1f)) {
@@ -73,11 +77,11 @@ fun SectionTitle(
     }
 }
 
-// ── Section card — solid surface (non-glass) ──────────────────────────────────
+// ── Section card — surface with hairline border (layered look) ────────────────
 @Composable
 fun DashboardSectionCard(
     modifier: Modifier = Modifier,
-    containerColor: Color = HazeGrey,
+    containerColor: Color = MaterialTheme.colorScheme.surfaceContainer,
     content: @Composable ColumnScope.() -> Unit,
 ) {
     Surface(
@@ -93,7 +97,7 @@ fun DashboardSectionCard(
     }
 }
 
-// ── Glass card — translucent premium surface with subtle gradient + border ───
+// ── Glass card — translucent premium surface with real layered translucency ────
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
@@ -101,12 +105,10 @@ fun GlassCard(
     content: @Composable ColumnScope.() -> Unit,
 ) {
     val tokens = glassTokens()
-    val baseSurface = tokens.surface
-
     Surface(
         modifier = modifier.fillMaxWidth(),
         shape = AirGlassShape,
-        color = baseSurface.copy(alpha = intensity.alpha),
+        color = tokens.fill.copy(alpha = intensity.alpha),
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
         border = BorderStroke(1.dp, tokens.border),
@@ -117,7 +119,7 @@ fun GlassCard(
                 .background(
                     Brush.verticalGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 0.05f),
+                            tokens.highlight,
                             Color.Transparent,
                         )
                     )
@@ -156,7 +158,6 @@ fun MetricItem(
     label: String,
     value: String,
     icon: ImageVector? = null,
-    iconTint: Color = MaterialTheme.colorScheme.primary,
     valueTone: MetricTone = MetricTone.Neutral,
     modifier: Modifier = Modifier,
 ) {
@@ -178,7 +179,7 @@ fun MetricItem(
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
-                    modifier = Modifier.size(14.dp),
+                    modifier = Modifier.size(16.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
@@ -215,16 +216,16 @@ fun StatusPill(
     Surface(
         modifier = modifier,
         shape = RoundedCornerShape(999.dp),
-        color = tint.copy(alpha = 0.12f)
+        color = tint.copy(alpha = 0.14f)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 5.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Box(
                 modifier = Modifier
-                    .size(6.dp)
+                    .size(7.dp)
                     .clip(CircleShape)
                     .background(tint)
             )
@@ -247,4 +248,29 @@ fun HairlineDivider(modifier: Modifier = Modifier) {
             .height(1.dp)
             .background(MaterialTheme.colorScheme.outlineVariant)
     )
+}
+
+// ── Premium clickable card wrapper with proper pressed state ──────────────────
+@Composable
+fun PremiumCard(
+    onClick: (() -> Unit)? = null,
+    modifier: Modifier = Modifier,
+    containerColor: Color = MaterialTheme.colorScheme.surface,
+    contentPadding: Dp = AirCardPadding,
+    content: @Composable ColumnScope.() -> Unit,
+) {
+    val baseModifier = if (onClick != null) modifier.clip(AirCardShape) else modifier
+    Surface(
+        modifier = baseModifier.fillMaxWidth(),
+        shape = AirCardShape,
+        color = containerColor,
+        tonalElevation = 0.dp,
+        shadowElevation = 0.dp,
+        onClick = onClick ?: {},
+        enabled = onClick != null,
+    ) {
+        Column(modifier = Modifier.padding(contentPadding)) {
+            content()
+        }
+    }
 }

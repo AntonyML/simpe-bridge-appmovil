@@ -23,14 +23,15 @@ import androidx.compose.material.icons.rounded.DarkMode
 import androidx.compose.material.icons.rounded.DensityLarge
 import androidx.compose.material.icons.rounded.DensityMedium
 import androidx.compose.material.icons.rounded.DensitySmall
+import androidx.compose.material.icons.rounded.FormatSize
 import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Opacity
 import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.Tune
-import androidx.compose.material.icons.rounded.Visibility
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -43,17 +44,18 @@ import androidx.compose.ui.unit.dp
 import com.simpe.bridge.appmovil.ui.components.AirCardPadding
 import com.simpe.bridge.appmovil.ui.components.AirCardShape
 import com.simpe.bridge.appmovil.ui.components.AirScreenPadding
+import com.simpe.bridge.appmovil.ui.components.AirSectionSpacing
 import com.simpe.bridge.appmovil.ui.components.GlassCard
 import com.simpe.bridge.appmovil.ui.components.HairlineDivider
 import com.simpe.bridge.appmovil.ui.components.MetricTone
 import com.simpe.bridge.appmovil.ui.components.SectionTitle
 import com.simpe.bridge.appmovil.ui.components.StatusPill
 import com.simpe.bridge.appmovil.ui.preferences.AccentIntensity
+import com.simpe.bridge.appmovil.ui.preferences.FontScale
 import com.simpe.bridge.appmovil.ui.preferences.GlassIntensity
 import com.simpe.bridge.appmovil.ui.preferences.ThemeMode
 import com.simpe.bridge.appmovil.ui.preferences.UiPreferences
 import com.simpe.bridge.appmovil.ui.preferences.VisualDensity
-import com.simpe.bridge.appmovil.ui.theme.HazeGrey
 
 @Composable
 fun AppearanceScreen(
@@ -66,12 +68,12 @@ fun AppearanceScreen(
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = AirScreenPadding, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(24.dp)
+        verticalArrangement = Arrangement.spacedBy(AirSectionSpacing)
     ) {
-        Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
             Text(
                 text = "Apariencia",
-                style = MaterialTheme.typography.headlineSmall,
+                style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
@@ -82,7 +84,7 @@ fun AppearanceScreen(
             )
         }
 
-        SectionTitle(title = "Vista previa", subtitle = "Cómo se ve tu app ahora mismo")
+        SectionTitle(title = "Vista previa", subtitle = "Cómo se ve tu app")
         GlassCard {
             AppearancePreview(prefs = prefs)
         }
@@ -112,6 +114,39 @@ fun AppearanceScreen(
                     icon = Icons.Rounded.DarkMode,
                     selected = prefs.themeMode == ThemeMode.Dark,
                     onClick = { onChange(prefs.copy(themeMode = ThemeMode.Dark)) }
+                )
+            }
+        }
+
+        SectionTitle(title = "Tamaño de fuente", subtitle = "Escala la tipografía global")
+        AppearanceSectionCard {
+            Column {
+                FontScaleOptionRow(
+                    label = "Normal",
+                    description = "Tipografía estándar",
+                    selected = prefs.fontScale == FontScale.Normal,
+                    onClick = { onChange(prefs.copy(fontScale = FontScale.Normal)) }
+                )
+                HairlineDivider()
+                FontScaleOptionRow(
+                    label = "Grande",
+                    description = "Más legible, contenido cómodo",
+                    selected = prefs.fontScale == FontScale.Large,
+                    onClick = { onChange(prefs.copy(fontScale = FontScale.Large)) }
+                )
+                HairlineDivider()
+                FontScaleOptionRow(
+                    label = "Muy grande",
+                    description = "Para sesiones de lectura largas",
+                    selected = prefs.fontScale == FontScale.ExtraLarge,
+                    onClick = { onChange(prefs.copy(fontScale = FontScale.ExtraLarge)) }
+                )
+                HairlineDivider()
+                FontScaleOptionRow(
+                    label = "Extra grande",
+                    description = "Máxima legibilidad",
+                    selected = prefs.fontScale == FontScale.Huge,
+                    onClick = { onChange(prefs.copy(fontScale = FontScale.Huge)) }
                 )
             }
         }
@@ -201,6 +236,13 @@ fun AppearanceScreen(
         AppearanceSectionCard {
             Column {
                 ToggleRow(
+                    label = "Panel principal (hero)",
+                    description = "Resumen rápido arriba de todo",
+                    checked = prefs.showHero,
+                    onCheckedChange = { onChange(prefs.copy(showHero = it)) }
+                )
+                HairlineDivider()
+                ToggleRow(
                     label = "Mostrar distribución",
                     description = "Barras de SINPE y spam",
                     checked = prefs.showDistribution,
@@ -212,6 +254,13 @@ fun AppearanceScreen(
                     description = "Bloque de sistema y riesgo",
                     checked = prefs.showSystemStatus,
                     onCheckedChange = { onChange(prefs.copy(showSystemStatus = it)) }
+                )
+                HairlineDivider()
+                ToggleRow(
+                    label = "Mostrar acciones rápidas",
+                    description = "Botones Test SMS, Escanear, etc.",
+                    checked = prefs.showQuickActions,
+                    onCheckedChange = { onChange(prefs.copy(showQuickActions = it)) }
                 )
                 HairlineDivider()
                 ToggleRow(
@@ -229,7 +278,13 @@ fun AppearanceScreen(
 
 @Composable
 private fun AppearancePreview(prefs: UiPreferences) {
-    Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    val scaleText = when (prefs.fontScale) {
+        FontScale.Normal -> 15
+        FontScale.Large -> 17
+        FontScale.ExtraLarge -> 18
+        FontScale.Huge -> 20
+    }
+    Column(verticalArrangement = Arrangement.spacedBy(14.dp)) {
         Text(
             text = "Panel",
             style = MaterialTheme.typography.titleSmall,
@@ -256,6 +311,11 @@ private fun AppearancePreview(prefs: UiPreferences) {
             }
             StatusPill(label = "En línea", tone = MetricTone.Positive)
         }
+        Text(
+            text = "Texto de ejemplo a ${scaleText}sp según escala.",
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -264,7 +324,7 @@ private fun AppearanceSectionCard(content: @Composable ColumnScope.() -> Unit) {
     Surface(
         modifier = Modifier.fillMaxWidth(),
         shape = AirCardShape,
-        color = MaterialTheme.colorScheme.surface,
+        color = MaterialTheme.colorScheme.surfaceContainer,
         tonalElevation = 0.dp,
         shadowElevation = 0.dp,
     ) {
@@ -283,6 +343,22 @@ private fun ThemeOptionRow(
     onClick: () -> Unit,
 ) {
     SelectableRow(label = label, description = description, icon = icon, selected = selected, onClick = onClick)
+}
+
+@Composable
+private fun FontScaleOptionRow(
+    label: String,
+    description: String,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    SelectableRow(
+        label = label,
+        description = description,
+        icon = Icons.Rounded.FormatSize,
+        selected = selected,
+        onClick = onClick
+    )
 }
 
 @Composable
@@ -336,24 +412,24 @@ private fun SelectableRow(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    val bg = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.08f) else Color.Transparent
+    val bg = if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.10f) else Color.Transparent
     val contentColor = if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurface
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .background(bg)
             .clickable(onClick = onClick)
-            .padding(horizontal = 20.dp, vertical = 14.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(10.dp))
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
                 .background(
-                    if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
-                    else HazeGrey
+                    if (selected) MaterialTheme.colorScheme.primary.copy(alpha = 0.20f)
+                    else MaterialTheme.colorScheme.surfaceContainer
                 ),
             contentAlignment = Alignment.Center
         ) {
@@ -361,7 +437,7 @@ private fun SelectableRow(
                 imageVector = icon,
                 contentDescription = null,
                 tint = contentColor,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
         Column(modifier = Modifier.weight(1f)) {
@@ -399,22 +475,22 @@ private fun ToggleRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable { onCheckedChange(!checked) }
-            .padding(horizontal = 20.dp, vertical = 14.dp),
+            .padding(horizontal = 20.dp, vertical = 16.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(14.dp)
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Box(
             modifier = Modifier
-                .size(36.dp)
-                .clip(RoundedCornerShape(10.dp))
-                .background(HazeGrey),
+                .size(40.dp)
+                .clip(RoundedCornerShape(12.dp))
+                .background(MaterialTheme.colorScheme.surfaceContainer),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Rounded.Tune,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(18.dp)
+                modifier = Modifier.size(20.dp)
             )
         }
         Column(modifier = Modifier.weight(1f)) {
@@ -430,6 +506,6 @@ private fun ToggleRow(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        androidx.compose.material3.Switch(checked = checked, onCheckedChange = onCheckedChange)
+        Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
 }

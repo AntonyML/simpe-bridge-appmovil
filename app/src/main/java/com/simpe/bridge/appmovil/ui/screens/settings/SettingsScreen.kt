@@ -20,7 +20,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import com.simpe.bridge.appmovil.domain.utils.SettingsManager
-import com.simpe.bridge.appmovil.ui.theme.HazeGrey
+import com.simpe.bridge.appmovil.ui.components.AirCardPadding
+import com.simpe.bridge.appmovil.ui.components.AirCardShape
+import com.simpe.bridge.appmovil.ui.components.AirScreenPadding
+import com.simpe.bridge.appmovil.ui.components.AirSectionSpacing
 
 @Composable
 fun SettingsScreen(
@@ -44,17 +47,16 @@ fun SettingsScreen(
         modifier = Modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
-            .padding(horizontal = 16.dp, vertical = 20.dp),
-        verticalArrangement = Arrangement.spacedBy(48.dp)
+            .padding(horizontal = AirScreenPadding, vertical = 20.dp),
+        verticalArrangement = Arrangement.spacedBy(AirSectionSpacing)
     ) {
         Text(
             text = "Configuración",
-            style = MaterialTheme.typography.headlineSmall,
+            style = MaterialTheme.typography.headlineMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface
         )
 
-        // Apariencia Section (enlace a pantalla de personalización visual)
         SettingsSection(title = "Apariencia") {
             SettingsActionItem(
                 title = "Tema y estilo",
@@ -64,7 +66,6 @@ fun SettingsScreen(
             )
         }
 
-        // General Section
         SettingsSection(title = "General") {
             SettingsToggleItem(
                 title = "Listener de SMS",
@@ -75,7 +76,6 @@ fun SettingsScreen(
             )
         }
 
-        // SINPE Senders Section
         SettingsSection(title = "Remitentes SINPE") {
             SettingsSendersItem(
                 senders = senders,
@@ -83,7 +83,6 @@ fun SettingsScreen(
             )
         }
 
-        // Permissions Section
         SettingsSection(title = "Permisos") {
             SettingsPermissionItem(
                 title = "Lectura de SMS",
@@ -101,7 +100,6 @@ fun SettingsScreen(
             )
         }
 
-        // Info Section
         SettingsSection(title = "Información") {
             SettingsInfoItem(
                 title = "Versión",
@@ -115,21 +113,17 @@ fun SettingsScreen(
             )
         }
 
-        // Logout Section
         OutlinedButton(
             onClick = onLogout,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            shape = RoundedCornerShape(14.dp)
+            modifier = Modifier.fillMaxWidth(),
+            shape = AirCardShape
         ) {
-            Icon(Icons.Rounded.Logout, contentDescription = null)
+            Icon(Icons.Rounded.Logout, contentDescription = null, modifier = Modifier.size(18.dp))
             Spacer(Modifier.width(8.dp))
-            Text("Cerrar sesión")
+            Text("Cerrar sesión", style = MaterialTheme.typography.labelLarge, fontWeight = FontWeight.SemiBold)
         }
     }
 
-    // Dialog para gestionar remitentes
     if (showSendersDialog) {
         SendersDialog(
             senders = senders,
@@ -158,25 +152,36 @@ fun SettingsSendersItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .clickable(onClick = onClick)
+            .padding(AirCardPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
             imageVector = Icons.Rounded.ContactPhone,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = "Remitentes esperados", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                text = "Remitentes esperados",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Text(
                 text = "${senders.size} configurados",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        IconButton(onClick = onClick) {
-            Icon(Icons.Rounded.Edit, contentDescription = "Editar")
+        IconButton(onClick = onClick, modifier = Modifier.size(40.dp)) {
+            Icon(
+                Icons.Rounded.Edit,
+                contentDescription = "Editar",
+                modifier = Modifier.size(20.dp)
+            )
         }
     }
 }
@@ -197,12 +202,12 @@ fun SendersDialog(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            shape = RoundedCornerShape(14.dp),
+            shape = AirCardShape,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
         ) {
             Column(
-                modifier = Modifier.padding(20.dp),
+                modifier = Modifier.padding(AirCardPadding),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 Text(
@@ -210,16 +215,14 @@ fun SendersDialog(
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold
                 )
-
                 Text(
                     text = "Números o palabras clave que identifican mensajes SINPE.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                // Lista de remitentes
                 LazyColumn(
-                    modifier = Modifier.heightIn(max = 200.dp),
+                    modifier = Modifier.heightIn(max = 240.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     items(senders.toList().sorted()) { sender ->
@@ -234,7 +237,7 @@ fun SendersDialog(
                             )
                             IconButton(
                                 onClick = { onRemoveSender(sender) },
-                                modifier = Modifier.size(32.dp)
+                                modifier = Modifier.size(40.dp)
                             ) {
                                 Icon(
                                     Icons.Rounded.Close,
@@ -246,7 +249,6 @@ fun SendersDialog(
                     }
                 }
 
-                // Campo para agregar
                 if (showAddField) {
                     OutlinedTextField(
                         value = newSender,
@@ -254,15 +256,13 @@ fun SendersDialog(
                         label = { Text("Nuevo remitente") },
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true,
-                        shape = RoundedCornerShape(4.dp)
+                        shape = RoundedCornerShape(10.dp)
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End
                     ) {
-                        TextButton(onClick = { showAddField = false }) {
-                            Text("Cancelar")
-                        }
+                        TextButton(onClick = { showAddField = false }) { Text("Cancelar") }
                         TextButton(
                             onClick = {
                                 if (newSender.isNotBlank()) {
@@ -271,9 +271,7 @@ fun SendersDialog(
                                     showAddField = false
                                 }
                             }
-                        ) {
-                            Text("Agregar")
-                        }
+                        ) { Text("Agregar") }
                     }
                 } else {
                     Row(
@@ -288,20 +286,15 @@ fun SendersDialog(
                             Spacer(Modifier.width(4.dp))
                             Text("Agregar")
                         }
-                        OutlinedButton(onClick = onReset) {
-                            Text("Reset")
-                        }
+                        OutlinedButton(onClick = onReset) { Text("Reset") }
                     }
                 }
 
-                // Botones de acción
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.End
                 ) {
-                    TextButton(onClick = onDismiss) {
-                        Text("Cerrar")
-                    }
+                    TextButton(onClick = onDismiss) { Text("Cerrar") }
                 }
             }
         }
@@ -316,19 +309,17 @@ fun SettingsSection(
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Text(
             text = title,
-            style = MaterialTheme.typography.labelLarge,
+            style = MaterialTheme.typography.titleSmall,
             color = MaterialTheme.colorScheme.primary,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.SemiBold
         )
         Surface(
-            color = HazeGrey,
-            shape = RoundedCornerShape(14.dp),
+            color = MaterialTheme.colorScheme.surfaceContainer,
+            shape = AirCardShape,
             tonalElevation = 0.dp,
             shadowElevation = 0.dp
         ) {
-            Column {
-                content()
-            }
+            Column { content() }
         }
     }
 }
@@ -344,23 +335,34 @@ fun SettingsActionItem(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick)
-            .padding(20.dp),
+            .padding(AirCardPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(text = description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         Icon(
             imageVector = Icons.Rounded.ChevronRight,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(22.dp)
         )
     }
 }
@@ -376,18 +378,28 @@ fun SettingsToggleItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(AirCardPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(24.dp)
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(text = description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = description,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
         Switch(checked = checked, onCheckedChange = onCheckedChange)
     }
@@ -404,17 +416,23 @@ fun SettingsPermissionItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(AirCardPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (isGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error
+            tint = if (isGranted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.error,
+            modifier = Modifier.size(24.dp)
         )
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
             Text(
                 text = status,
                 style = MaterialTheme.typography.bodySmall,
@@ -422,9 +440,7 @@ fun SettingsPermissionItem(
             )
         }
         if (!isGranted) {
-            TextButton(onClick = onClick) {
-                Text("Habilitar")
-            }
+            TextButton(onClick = onClick) { Text("Habilitar") }
         }
     }
 }
@@ -438,18 +454,28 @@ fun SettingsInfoItem(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(20.dp),
+            .padding(AirCardPadding),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = MaterialTheme.colorScheme.onSurfaceVariant
+            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.size(24.dp)
         )
         Column {
-            Text(text = title, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(text = value, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                text = title,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
