@@ -53,8 +53,8 @@ class ReceiptUploadRepositoryImpl(
             .setType(MultipartBody.FORM)
             .addFormDataPart(
                 name = "file",
-                filename = "image.webp",
-                body = imageFile.asRequestBody("image/webp".toMediaType()),
+                filename = "image.jpg",
+                body = imageFile.asRequestBody("image/jpeg".toMediaType()),
             )
             .addFormDataPart("id_pos", request.idPos)
             .addFormDataPart("correlation_token", request.correlationToken)

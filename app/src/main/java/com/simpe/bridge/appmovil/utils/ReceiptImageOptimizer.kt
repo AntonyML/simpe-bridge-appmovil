@@ -33,16 +33,16 @@ class ReceiptImageOptimizer(
         if (resized !== cropped) cropped.recycle()
 
         val cacheDir = File(context.cacheDir, "receipts").apply { mkdirs() }
-        val imageFile = File(cacheDir, "receipt_${System.currentTimeMillis()}.webp")
-        val quality = chooseQuality(resized.width, resized.height)
+        val imageFile = File(cacheDir, "receipt_${System.currentTimeMillis()}.jpg")
+        val quality = 92 // High quality for OCR
         FileOutputStream(imageFile).use { output ->
-            resized.compress(webpFormat(), quality, output)
+            resized.compress(Bitmap.CompressFormat.JPEG, quality, output)
         }
 
         val thumbnail = resized.resizeToMaxWidth(THUMBNAIL_WIDTH)
-        val thumbnailFile = File(cacheDir, "receipt_thumb_${System.currentTimeMillis()}.webp")
+        val thumbnailFile = File(cacheDir, "receipt_thumb_${System.currentTimeMillis()}.jpg")
         FileOutputStream(thumbnailFile).use { output ->
-            thumbnail.compress(webpFormat(), THUMBNAIL_QUALITY, output)
+            thumbnail.compress(Bitmap.CompressFormat.JPEG, THUMBNAIL_QUALITY, output)
         }
         if (thumbnail !== resized) thumbnail.recycle()
 
@@ -60,6 +60,7 @@ class ReceiptImageOptimizer(
                 processedWidth = resized.width,
                 processedHeight = resized.height,
                 quality = quality,
+                mimeType = "image/jpeg"
             ),
         )
         resized.recycle()
